@@ -1,0 +1,52 @@
+{
+  "schema": "1.0",
+  "id": "019a5e00-0000-7000-8000-00000000002e",
+  "building": "019a5e00-0000-7000-8000-000000000002",
+  "meters": [
+    {
+      "id": "019a5e00-0000-7000-8000-00000000002f",
+      "label": "Gaszähler",
+      "carrier": "naturalGas",
+      "services": [
+        "heating",
+        "hotWater"
+      ],
+      "system": "019a5e00-0000-7000-8000-00000000001e"
+    }
+  ],
+  "periods": [
+    {
+      "meter": "019a5e00-0000-7000-8000-00000000002f",
+      "from": "2023-01-01",
+      "to": "2023-12-31",
+      "amount": 23100,
+      "unit": "kWh",
+      "kind": "bill",
+      "source": {
+        "note": "Abrechnung des Versorgers"
+      }
+    },
+    {
+      "meter": "019a5e00-0000-7000-8000-00000000002f",
+      "from": "2024-01-01",
+      "to": "2024-12-31",
+      "amount": 21800,
+      "unit": "kWh",
+      "kind": "bill",
+      "source": {
+        "note": "Abrechnung des Versorgers"
+      }
+    },
+    {
+      "meter": "019a5e00-0000-7000-8000-00000000002f",
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "amount": 22400,
+      "unit": "kWh",
+      "kind": "bill",
+      "source": {
+        "file": "ee980f8a7253e08be2a1fdbfe4157283fc8eb43c233ce06224c808e634473d19"
+      }
+    }
+  ]
+}

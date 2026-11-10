@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/received.json",
+  "title": "bzf received files",
+  "description": "The store's own document `received.json`: the files received into the project's folders (plans, photos, documents), each by its hash, oldest first. The bytes are kept as an object by the hash, so a file replaced or deleted in its folder is noticed and can be restored. A name received again in place has a newer entry after the older.",
+  "x-bzf-status": "stable",
+  "x-bzf-class": "building",
+  "type": "object",
+  "properties": {
+    "files": { "type": "array", "items": { "$ref": "#/$defs/file" } }
+  },
+  "required": ["files"],
+  "additionalProperties": true,
+  "$defs": {
+    "file": {
+      "description": "A received file.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "name": { "description": "Its name in its folder, NFC-normalised, unique in the folder regardless of case.", "type": "string", "minLength": 1 },
+        "folder": {
+          "description": "The folder it was received into: `Zeichnungen` (plans: DWG, DXF, PDF, IFC), `Fotos`, `Dokumente` (everything else).",
+          "anyOf": [{ "enum": ["Zeichnungen", "Fotos", "Dokumente"] }, { "type": "string" }]
+        },
+        "role": {
+          "description": "What its folder is for, the same in every language: `plans` (`Zeichnungen`), `photos` (`Fotos`), `documents` (`Dokumente`). The folder names are fixed identifiers of the format and are not translated (README, \"How the documents are written\"); a reader derives `role` from `folder` where it is absent.",
+          "anyOf": [{ "enum": ["plans", "photos", "documents"] }, { "type": "string" }]
+        },
+        "sha256": { "description": "The hash of its bytes, its identity.", "$ref": "common.json#/$defs/hash" },
+        "size": { "description": "Bytes.", "type": "integer", "minimum": 0 },
+        "received": { "description": "When it was received.", "$ref": "common.json#/$defs/time" },
+        "device": { "description": "The device that received it.", "type": "string" },
+        "app": { "description": "The app that received it.", "type": "string" },
+        "type": {
+          "description": "What kind of document it is, so a logbook can find it (the CEN template's documentation category): a plan, a photo, a scene (LoD2) or orthophoto, a bill, a data sheet, an EPD, a manual, a certificate (an earlier Energieausweis), an inspection report, a permit, a contract.",
+          "anyOf": [
+            {
+              "enum": [
+                "plan",
+                "photo",
+                "scene",
+                "orthophoto",
+                "bill",
+                "datasheet",
+                "epd",
+                "manual",
+                "certificate",
+                "inspection",
+                "permit",
+                "contract",
+                "other"
+              ]
+            },
+            { "$ref": "common.json#/$defs/newerValue" }
+          ]
+        },
+        "from": { "description": "From whom it came: an architect's office, the owner, a data service.", "type": "string" },
+        "licence": {
+          "description": "The licence it came under, where it has one (LoD2 and orthophotos: per Land, dl-de/zero-2.0, dl-de/by-2.0, CC BY 4.0). A writer keeps it, and an issue or export that contains the file or anything derived from it carries its attribution.",
+          "type": "object",
+          "properties": {
+            "id": { "description": "The licence's id: an SPDX id or the licence's own short name.", "type": "string" },
+            "url": { "type": "string" }
+          },
+          "required": ["id"],
+          "additionalProperties": true
+        },
+        "attribution": { "description": "The attribution its licence asks for: \"© GeoBasis-DE / LGLN 2026\".", "type": "string" },
+        "mayPassOn": { "description": "False where it may not be passed to others (an architect's plans under copyright, a photo of people): an issue asks before including it.", "type": "boolean", "default": true },
+        "about": { "description": "The items it shows or documents: the photo of a boiler, the data sheet of a window.", "type": "array", "items": { "$ref": "common.json#/$defs/id" } }
+      },
+      "required": ["id", "name", "folder", "sha256"],
+      "additionalProperties": true
+    }
+  }
+}

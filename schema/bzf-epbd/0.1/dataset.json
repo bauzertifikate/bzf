@@ -1,0 +1,560 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf-epbd/0.1/dataset.json",
+  "title": "bzf-epbd: a building's data as the EPBD asks for it",
+  "description": "A proposal for the data a building's energy performance certificate, renovation passport and digital building logbook exchange under Directive (EU) 2024/1275 (EPBD): every data point of its Annex V (certificate), Annex VIII (renovation passport), Annex I (the calculation's inputs and outputs), Annex III (life-cycle GWP) and Articles 12, 16, 19, 20(8), 22 and 24, plus the identifiers that link a building to the cadastre, the land register and a national building register (Art. 22(7)). Field descriptions name the clause they answer. Figures are per m² of the reference floor area and year unless they say otherwise. Shares are fractions (0 to 1), money is in `currency`, VAT included, and free text (labels, reasons, notes) is in `language`. Keys and listed values are English; a value national to one country carries its code, `<country>:<value>` (`de:isfp`), one the EPBD or an EU or international standard defines stays bare (`nzeb`). Times are RFC 3339 with the local offset (`Z` only for a time kept in UTC). Version 0.1 carries a building's current certificate, passport and assessment, the last issued; earlier ones stay with the registers and logbooks that hold them. Every object keeps fields it doesn't list, so a reader of this version reads a newer minor one (`format`). Written and read by kernel/bz-epbd from and into the open building format bzf (https://bauzertifikate.de/schema/bzf/1/); spec/MAPPINGS.md lists where each data point lies there. Status: proposal, offered to CEN/TC 442/WG 13 and its DIN mirror committee for the logbook's core data template. Licence: CC0 1.0.",
+  "x-bzf-status": "draft",
+  "type": "object",
+  "properties": {
+    "format": {
+      "description": "This format and its version, `bzf-epbd/<major>.<minor>`; this schema's is 0.1. A newer minor only adds fields and values, so a reader of 0.1 reads every 0.x file and names what it doesn't know rather than dropping it unsaid. Another major version is another format and isn't read as this one.",
+      "type": "string",
+      "pattern": "^bzf-epbd/0\\.[0-9]+$"
+    },
+    "written": {
+      "description": "Who wrote the file, when and from which project state, so a register or logbook can tell two files of one building apart and trace one back to where it came from. It describes the file, not the building: a reader keeps it with the file, not in the building's record.",
+      "type": "object",
+      "properties": {
+        "time": { "description": "When the file was written.", "type": "string", "format": "date-time" },
+        "app": { "description": "The software that wrote it: \"bauzertifikate Aufmaß\".", "type": "string" },
+        "appVersion": { "description": "Its version.", "type": "string" },
+        "kernelVersion": { "description": "The version of the calculation kernel that worked out what is derived (the envelope).", "type": "string" },
+        "project": { "description": "The id of the project it was written from (in bzf, project.json `id`), the same in every file of that project.", "type": "string" },
+        "revision": { "description": "The project state it was written from: in bzf the revision's SHA-256 (revision.json), so the file is traced to the exact data it shows.", "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "language": {
+      "description": "The language of the file's free text, as a BCP 47 tag: \"de\", \"fr-BE\".",
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{1,8})*$"
+    },
+    "currency": { "description": "The currency of every amount of money in the file, ISO 4217: \"EUR\".", "type": "string", "pattern": "^[A-Z]{3}$" },
+    "building": { "$ref": "#/$defs/building" },
+    "envelope": { "$ref": "#/$defs/envelope" },
+    "systems": {
+      "description": "The technical building systems (Art. 2(6), Art. 16(1), Annex I 4(b) to (f), (k), 5; Annex V 2(a), (i) to (m), (r), (s)).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/system" }
+    },
+    "consumption": {
+      "description": "Metered energy consumption by carrier and period (Annex V 2(q), Annex I 1, Art. 22(1)).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/metered" }
+    },
+    "certificate": { "$ref": "#/$defs/certificate" },
+    "passport": { "$ref": "#/$defs/passport" },
+    "smartReadiness": { "$ref": "#/$defs/smartReadiness" },
+    "inspections": {
+      "description": "Inspections of heating, ventilation and air-conditioning systems over 70 kW (Art. 23, Art. 24(3)).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/inspection" }
+    }
+  },
+  "required": ["format", "language", "currency", "building"],
+  "additionalProperties": true,
+  "$defs": {
+    "knownOrNewer": {
+      "description": "One of the values a field lists, or a newer one, kept. National values carry their country, `<country>:<value>`. Only strings: bzf also keeps newer values that are objects, which this version doesn't carry.",
+      "type": "string",
+      "minLength": 1
+    },
+    "when": {
+      "description": "When it was issued: an RFC 3339 time with its offset, or a date (ISO 8601) where only the day is known.",
+      "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "string", "format": "date" }]
+    },
+    "carrier": {
+      "description": "An energy carrier.",
+      "anyOf": [
+        {
+          "enum": [
+            "naturalGas",
+            "biomethane",
+            "lpg",
+            "heatingOil",
+            "bioOil",
+            "hydrogen",
+            "districtHeating",
+            "districtCooling",
+            "electricity",
+            "woodPellets",
+            "logWood",
+            "woodChips",
+            "hardCoal",
+            "lignite"
+          ]
+        },
+        { "$ref": "#/$defs/knownOrNewer" }
+      ]
+    },
+    "service": {
+      "description": "An energy use as Annex V and Annex I 2 list them.",
+      "anyOf": [{ "enum": ["heating", "hotWater", "cooling", "ventilation", "lighting"] }, { "$ref": "#/$defs/knownOrNewer" }]
+    },
+    "heatNetwork": {
+      "description": "A connection to a district heating or cooling network, or its potential: `connected`, `available` (a network is there to connect to), `planned`, `none`, `unknown`.",
+      "anyOf": [{ "enum": ["connected", "available", "planned", "none", "unknown"] }, { "$ref": "#/$defs/knownOrNewer" }]
+    },
+    "identifier": {
+      "description": "An id in someone else's register: the scheme that issued it and its value. National schemes carry their country: for a building `de:alkis` (the German cadastre), `de:land-register`, `<country>:building-id` (a national building register, once one exists); for a registration the register, `de:dibt`, `de:bafa`.",
+      "type": "object",
+      "properties": {
+        "scheme": { "type": "string", "minLength": 1 },
+        "value": { "type": "string", "minLength": 1 }
+      },
+      "required": ["scheme", "value"],
+      "additionalProperties": true
+    },
+    "registration": {
+      "description": "Where something issued was registered or uploaded: the register as `scheme`, the number it got as `value`, and when.",
+      "allOf": [
+        { "$ref": "#/$defs/identifier" },
+        { "type": "object", "properties": { "time": { "type": "string", "format": "date-time" } }, "additionalProperties": true }
+      ]
+    },
+    "building": {
+      "description": "Who and where the building is. At least one of identifiers, address and location, so a register or logbook can link the record to its building.",
+      "type": "object",
+      "properties": {
+        "identifiers": {
+          "description": "The ids the building has in other registers, so a database links it to the cadastre, the land register and logbooks (Art. 22(7)). The directive names no building identifier.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/identifier" },
+          "minItems": 1
+        },
+        "address": {
+          "description": "Its postal address (national, e.g. § 85 Abs. 1 Nr. 5 GEG/GModG).",
+          "type": "object",
+          "properties": {
+            "street": { "type": "string" },
+            "number": { "type": "string" },
+            "postcode": { "type": "string" },
+            "city": { "type": "string" },
+            "country": { "description": "ISO 3166-1 alpha-2: \"DE\".", "type": "string", "pattern": "^[A-Z]{2}$" }
+          },
+          "additionalProperties": true
+        },
+        "location": {
+          "description": "Where it lies, for the outdoor climate, solar exposure and heat planning (Annex I 4(g), Art. 22(3)).",
+          "type": "object",
+          "properties": {
+            "crs": { "description": "A projected coordinate reference system by its EPSG code: \"EPSG:25832\" (ETRS89 / UTM 32N); across borders EPSG:3035 (ETRS89 / LAEA Europe).", "type": "string" },
+            "easting": { "description": "The CRS's first axis, m.", "type": "number" },
+            "northing": { "description": "The CRS's second axis, m.", "type": "number" }
+          },
+          "required": ["crs", "easting", "northing"],
+          "additionalProperties": true
+        },
+        "year": { "description": "Year of construction.", "type": "integer" },
+        "use": {
+          "description": "Residential, non-residential or both.",
+          "anyOf": [{ "enum": ["residential", "nonResidential", "mixed"] }, { "$ref": "#/$defs/knownOrNewer" }]
+        },
+        "category": {
+          "description": "Its category as Annex I 6 lists them.",
+          "anyOf": [
+            { "enum": ["singleFamily", "apartmentBlock", "office", "education", "hospital", "hotelRestaurant", "sports", "retail", "other"] },
+            { "$ref": "#/$defs/knownOrNewer" }
+          ]
+        },
+        "dwellings": { "description": "Number of dwellings.", "type": "integer", "minimum": 0 },
+        "n50": { "description": "Air changes at 50 Pa, 1/h, where measured (Annex I 4(e)).", "type": "number", "minimum": 0 },
+        "thermalBridges": {
+          "description": "How thermal bridges are accounted for (Annex I 4(a)(v)): `default` (a flat allowance on the envelope's U-values), `reduced` (the details follow a national catalogue of good practice, so a smaller allowance applies), `detailed` (each bridge calculated); with the allowance, where one applies.",
+          "type": "object",
+          "properties": {
+            "kind": { "anyOf": [{ "enum": ["default", "reduced", "detailed"] }, { "$ref": "#/$defs/knownOrNewer" }] },
+            "deltaU": { "description": "The allowance on the envelope's U-values, W/(m²·K).", "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": true
+        },
+        "seismic": {
+          "description": "Its seismic safety, where relevant (Annex VIII 2(f)).",
+          "type": "object",
+          "properties": {
+            "zone": { "description": "The earthquake zone of the national annex to EN 1998-1.", "type": "string" },
+            "note": { "description": "What is known of the structure's resistance.", "type": "string" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "anyOf": [{ "required": ["identifiers"] }, { "required": ["address"] }, { "required": ["location"] }],
+      "additionalProperties": true
+    },
+    "envelope": {
+      "description": "The thermal envelope as worked out from the building's geometry: part of the data needed for the calculation uploaded with a certificate (Art. 20(8), Annex I 4(a), (g), (h)), and Annex V 2(e) to (g).",
+      "type": "object",
+      "properties": {
+        "heatedVolume": { "description": "Heated gross volume, m³.", "type": "number", "minimum": 0 },
+        "netFloorArea": { "description": "Net floor area of the heated spaces, inside their walls, m²: the useful floor area of Art. 2(51) as the geometry gives it. The figures' own reference area is `figures.area`.", "type": "number", "minimum": 0 },
+        "area": { "description": "Envelope area, m².", "type": "number", "minimum": 0 },
+        "parts": {
+          "description": "The envelope by element, what lies behind it and the direction it faces, net of openings.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "anyOf": [
+                  { "enum": ["wall", "roof", "topCeiling", "cellarCeiling", "floor", "window", "door", "shutterBox"] },
+                  { "$ref": "#/$defs/knownOrNewer" }
+                ]
+              },
+              "boundary": { "anyOf": [{ "enum": ["outside", "ground", "unheated", "otherZone"] }, { "$ref": "#/$defs/knownOrNewer" }] },
+              "azimuth": { "description": "Compass bearing of the outward normal in degrees clockwise from north (0 north, 90 east), in steps of 45°; absent for a horizontal part.", "type": "number", "minimum": 0, "exclusiveMaximum": 360 },
+              "area": { "description": "m².", "type": "number", "minimum": 0 }
+            },
+            "required": ["kind", "boundary", "area"],
+            "additionalProperties": true
+          }
+        },
+        "meanUOpaque": { "description": "Average U-value of the opaque elements, W/(m²·K) (Annex V 2(e)).", "type": "number", "minimum": 0 },
+        "meanUTransparent": { "description": "Average U-value of the transparent elements, W/(m²·K) (Annex V 2(f)).", "type": "number", "minimum": 0 },
+        "commonWindow": { "description": "Type of the most common transparent element (Annex V 2(g)): \"insulatingDouble\", \"triple\".", "type": "string" },
+        "meanG": { "description": "Average total solar energy transmittance of the windows (Annex I 4(a)(iii), 4(h)).", "type": "number", "minimum": 0, "maximum": 1 },
+        "shadedShare": { "description": "Share of the windows' area with solar protection (Annex I 4(h)).", "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["heatedVolume", "netFloorArea", "area"],
+      "additionalProperties": true
+    },
+    "system": {
+      "description": "A technical building system.",
+      "type": "object",
+      "properties": {
+        "id": { "description": "Its id where it came from, so data coming back finds it.", "type": "string" },
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "boiler",
+                "heatPump",
+                "districtHeatingStation",
+                "electricHeater",
+                "stove",
+                "chp",
+                "solarThermal",
+                "photovoltaic",
+                "battery",
+                "thermalStorage",
+                "distribution",
+                "emitters",
+                "ventilationUnit",
+                "coolingUnit",
+                "chargingPoint",
+                "meter",
+                "automation",
+                "lighting"
+              ]
+            },
+            { "$ref": "#/$defs/knownOrNewer" }
+          ]
+        },
+        "type": { "description": "Its type within its kind: a boiler `condensing`, a heat pump `outdoorAir`, a thermal storage `hotWater` or `buffer`, emitters `underfloor`, automation `indoorQualitySensors` (Annex V 2(i)) or `indoorQualityControls` (Annex V 2(j)), a charging point `ac` or `dc`.", "type": "string" },
+        "services": { "description": "The energy uses it serves.", "type": "array", "items": { "$ref": "#/$defs/service" } },
+        "carrier": { "description": "The energy carrier it takes in.", "$ref": "#/$defs/carrier" },
+        "output": { "description": "Rated output, kW (Annex V 2(a): size of generator).", "type": "number", "minimum": 0 },
+        "peakPower": { "description": "A PV array's peak power, kWp (Annex I 4(c)).", "type": "number", "minimum": 0 },
+        "area": { "description": "Collector or module area, m².", "type": "number", "minimum": 0 },
+        "year": { "description": "Year installed.", "type": "integer" },
+        "endOfLife": { "description": "Year its lifespan is expected to end (Annex V 2(m), Art. 16(1), Art. 19(9)).", "type": "integer" },
+        "signals": { "description": "Whether it can react to external signals and adjust its consumption.", "type": "boolean" },
+        "flowTemperature": { "description": "Design supply temperature of a distribution or emitters, °C.", "type": "number" },
+        "efficiency": { "description": "Seasonal efficiency of a generator, as a fraction (Art. 16(1)).", "type": "number", "exclusiveMinimum": 0 },
+        "scop": { "description": "A heat pump's seasonal coefficient of performance, or its seasonal performance factor as measured.", "type": "number", "exclusiveMinimum": 0 },
+        "seer": { "description": "A cooling unit's seasonal energy efficiency ratio (Annex I 4(d), Art. 16(1)).", "type": "number", "exclusiveMinimum": 0 },
+        "power": { "description": "Rated electrical input power, kW: built-in lighting (Annex I 4(f)), fans, pumps.", "type": "number", "minimum": 0 },
+        "airflow": { "description": "A ventilation unit's design air volume flow, m³/h (Annex I 4(e)).", "type": "number", "minimum": 0 },
+        "specificFanPower": { "description": "A ventilation unit's specific fan power, W/(m³/h).", "type": "number", "minimum": 0 },
+        "insulation": {
+          "description": "How a distribution's pipes or a thermal storage are insulated (Annex I 4(b)).",
+          "anyOf": [{ "enum": ["none", "partial", "toStandard"] }, { "$ref": "#/$defs/knownOrNewer" }]
+        },
+        "standingLoss": { "description": "A thermal storage's standing heat loss, kWh a day.", "type": "number", "minimum": 0 },
+        "heatRecovery": { "description": "A ventilation unit's heat recovery efficiency (Annex I 4(e)).", "type": "number", "minimum": 0, "maximum": 1 },
+        "automationClass": { "description": "Building automation and control class of EN ISO 52120-1 (Annex I 4(k)).", "anyOf": [{ "enum": ["A", "B", "C", "D"] }, { "$ref": "#/$defs/knownOrNewer" }] },
+        "factors": {
+          "description": "Primary energy and emission factors of what it takes in, where they are its own: a district heating network's (Annex V 2(s)).",
+          "type": "object",
+          "properties": {
+            "primary": { "description": "Primary energy factor (non-renewable part).", "type": "number", "minimum": 0 },
+            "emission": { "description": "g CO₂-eq/kWh.", "type": "number", "minimum": 0 },
+            "source": { "description": "Who states them.", "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "count": { "description": "How many alike it stands for: recharging points (Annex V 2(k)).", "type": "integer", "minimum": 1 },
+        "energy": { "description": "A battery's usable capacity, kWh: an amount of energy, not a volume (Annex V 2(l)).", "type": "number", "minimum": 0 },
+        "volume": { "description": "A thermal storage's volume, litres, not m³ (Annex V 2(l)).", "type": "number", "minimum": 0 }
+      },
+      "required": ["kind"],
+      "additionalProperties": true
+    },
+    "metered": {
+      "description": "Metered consumption of one carrier over one period.",
+      "type": "object",
+      "properties": {
+        "carrier": { "$ref": "#/$defs/carrier" },
+        "services": { "description": "The energy uses the meter covers.", "type": "array", "items": { "$ref": "#/$defs/service" } },
+        "from": { "description": "First day.", "type": "string", "format": "date" },
+        "to": { "description": "Last day, inclusive.", "type": "string", "format": "date" },
+        "amount": { "type": "number", "minimum": 0 },
+        "unit": { "description": "kWh, m3, l, kg, …", "type": "string", "minLength": 1 }
+      },
+      "required": ["carrier", "from", "to", "amount", "unit"],
+      "additionalProperties": true
+    },
+    "figures": {
+      "description": "The figures of a certificate, a renovation step or a target, as the issuing method calculated or measured them (the certificate's `basis` and `method`).",
+      "type": "object",
+      "properties": {
+        "class": { "description": "Energy performance class (Annex V 1(a); Annex VIII 1(e)(v) per step), on `classScale`.", "type": "string" },
+        "classScale": {
+          "description": "The scale `class` and `emissionClass` are on: `eu` for the harmonised A to G of Art. 19(2), or a national one, `de:geg` (A+ to H).",
+          "anyOf": [{ "enum": ["eu", "de:geg"] }, { "$ref": "#/$defs/knownOrNewer" }]
+        },
+        "primaryEnergy": { "description": "Annual primary energy use, kWh/(m²·a) (Annex V 1(b)): the non-renewable part where the method separates it, else the total. A writer that has both also fills `primaryEnergyTotal`.", "type": "number" },
+        "primaryEnergyTotal": { "description": "Total primary energy, kWh/(m²·a) (Annex I 3).", "type": "number" },
+        "primaryEnergyRenewable": { "description": "Renewable primary energy, kWh/(m²·a) (Annex I 3).", "type": "number" },
+        "finalEnergy": { "description": "Annual final energy use, kWh/(m²·a) (Annex V 1(c)).", "type": "number" },
+        "energyNeed": { "description": "Calculated energy needs, kWh/(m²·a) (Annex V 1, second paragraph (c)).", "type": "number" },
+        "emissions": { "description": "Operational greenhouse gas emissions, kg CO₂-eq/(m²·a) (Annex V 1(e)).", "type": "number" },
+        "emissionClass": { "description": "Greenhouse gas emission class (Annex V 2(b)), on `classScale`.", "type": "string" },
+        "renewableShare": { "description": "Renewable energy produced on site as a fraction of the building's final energy use (Annex V 1(d); Annex VIII 1(g) after renovation); above 1 where it produces more than it uses.", "type": "number", "minimum": 0 },
+        "renewableProduction": { "description": "Renewable energy produced on site, kWh a year (Annex V 1, second paragraph (b)); its carrier and source follow from the producing systems.", "type": "number", "minimum": 0 },
+        "selfConsumption": { "description": "Share of the renewable energy produced on site the building uses itself (Annex VIII 1(g)).", "type": "number", "minimum": 0, "maximum": 1 },
+        "lifeCycleGwp": { "description": "Life-cycle global warming potential, kg CO₂-eq/m² of useful floor area over 50 years (Annex V 1(e), Art. 7(2)).", "type": "number" },
+        "lifeCycleGwpStages": {
+          "description": "The same per EN 15978 module (Annex III): \"A1-A3\", \"A4-A5\", \"B1-B7\", \"C1-C4\", \"D\".",
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "carbonRemovals": { "description": "Carbon removals by temporary storage in or on the building, kg CO₂-eq/m² (Annex V 2(c)).", "type": "number" },
+        "pm25": { "description": "Operational PM2.5 emissions, g/(m²·a) (Annex V 2(t)).", "type": "number", "minimum": 0 },
+        "uses": {
+          "description": "The figures per energy use: `heating`, `cooling`, `hotWater`, `ventilation`, `lighting` (Annex V 2(a), Annex I 2).",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "energyNeed": { "description": "kWh/(m²·a).", "type": "number" },
+              "finalEnergy": { "description": "kWh/(m²·a).", "type": "number" },
+              "primaryEnergy": { "description": "kWh/(m²·a).", "type": "number" },
+              "peakLoad": { "description": "kW.", "type": "number", "minimum": 0 }
+            },
+            "additionalProperties": true
+          }
+        },
+        "energyCosts": { "description": "Energy costs a year at the stated prices, in `currency` (Annex VIII 1(e)(iv)).", "type": "number" },
+        "standard": { "description": "A standard reached (Annex VIII 2(b)(ii)): `nzeb`, `zeb`, or a national one, `de:effizienzhaus-70`.", "type": "string" },
+        "area": { "description": "The reference floor area the figures are per, m² (Art. 2(52)); with it the annual totals in kWh (Annex V 1, second paragraph (a)).", "type": "number", "minimum": 0 },
+        "areaKind": {
+          "description": "Which area `area` is: `referenceFloorArea` (Art. 2(52)), `usefulFloorArea` (Art. 2(51)), `netFloorArea`, `grossFloorArea`, `livingArea`.",
+          "anyOf": [{ "enum": ["referenceFloorArea", "usefulFloorArea", "netFloorArea", "grossFloorArea", "livingArea"] }, { "$ref": "#/$defs/knownOrNewer" }]
+        },
+        "areaKindNational": { "description": "The area's national definition: `de:AN` (GEG Gebäudenutzfläche), `de:NGF` (DIN 277 net floor area), `de:WoFlV` (living area).", "type": "string" },
+        "references": {
+          "description": "The reference values stated beside the figures, kWh/(m²·a) of primary energy, as they apply to this building (Art. 19(1), Annex VIII 2(b)(ii)).",
+          "type": "object",
+          "properties": {
+            "minimumRequirement": { "description": "Minimum energy performance requirement.", "type": "number" },
+            "meps": { "description": "Minimum energy performance standard.", "type": "number" },
+            "nzeb": { "description": "Nearly zero-energy requirement.", "type": "number" },
+            "zeb": { "description": "Zero-emission requirement.", "type": "number" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "issue": {
+      "description": "Something issued: when, until when, where registered.",
+      "type": "object",
+      "properties": {
+        "issued": { "$ref": "#/$defs/when" },
+        "validUntil": { "description": "The last day it is valid, inclusive.", "type": "string", "format": "date" },
+        "registrations": { "type": "array", "items": { "$ref": "#/$defs/registration" } }
+      },
+      "required": ["issued"],
+      "additionalProperties": true
+    },
+    "inspection": {
+      "description": "An inspection report (Art. 23, 24): what was inspected and what came of it.",
+      "allOf": [
+        { "$ref": "#/$defs/issue" },
+        {
+          "type": "object",
+          "properties": {
+            "systems": { "description": "The systems inspected, by their `id`.", "type": "array", "items": { "type": "string" } },
+            "kind": {
+              "description": "The installation inspected.",
+              "anyOf": [{ "enum": ["heating", "ventilation", "airConditioning", "combined"] }, { "$ref": "#/$defs/knownOrNewer" }]
+            },
+            "outcome": { "description": "Its result in a sentence.", "type": "string" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "contact": {
+      "description": "A one-stop shop for renovation advice (Annex V 1(f), Annex VIII 1(j)).",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "certificate": {
+      "description": "The energy performance certificate issued last (Art. 19, Annex V); `validUntil` at most ten years on (Art. 19(13)), `registrations` its numbers in registers and databases (Art. 20(8)).",
+      "allOf": [
+        { "$ref": "#/$defs/issue" },
+        {
+          "type": "object",
+          "properties": {
+            "basis": {
+              "description": "How its figures were obtained (Annex I 1): `calculated` by an energy balance under standard conditions, or `measured` from metered consumption.",
+              "anyOf": [{ "enum": ["calculated", "measured"] }, { "$ref": "#/$defs/knownOrNewer" }]
+            },
+            "method": { "description": "The method and edition the figures come from: \"DIN/TS 18599:2025-10\", \"EN ISO 52000-1:2017\".", "type": "string" },
+            "figures": { "$ref": "#/$defs/figures" },
+            "reactsToSignals": { "description": "Whether the building can react to external signals and adjust its energy consumption (Annex V 1, second paragraph (d)).", "type": "boolean" },
+            "lowTemperatureHeating": { "description": "Whether the heat distribution can work at low or more efficient temperatures (Annex V 1, second paragraph (e); Annex V 2(n); Art. 19(8)).", "type": "boolean" },
+            "lowTemperatureHotWater": { "description": "Whether the domestic hot water can work at more efficient temperatures (Annex V 2(o)).", "type": "boolean" },
+            "lowTemperatureCooling": { "description": "Whether the air-conditioning can work at more efficient temperatures (Annex V 2(p)).", "type": "boolean" },
+            "overheatingRisk": {
+              "description": "The overheating risk analysis (Annex V 2(h)): its result, `low`, `high` or the method's own, and the method.",
+              "type": "object",
+              "properties": { "result": { "type": "string" }, "method": { "type": "string" } },
+              "additionalProperties": true
+            },
+            "oneStopShop": { "$ref": "#/$defs/contact" },
+            "passportAvailable": { "description": "Whether a renovation passport is available (Annex V 2(d)).", "type": "boolean" },
+            "recommendations": {
+              "description": "Recommendations for cost-effective improvement (Art. 19(5) to (7)), each with the figures it would give.",
+              "type": "array",
+              "items": { "$ref": "#/$defs/step" }
+            },
+            "heatNetwork": { "description": "As the certificate states it (Annex V 2(r)).", "$ref": "#/$defs/heatNetwork" }
+          },
+          "required": ["figures"],
+          "additionalProperties": true
+        }
+      ]
+    },
+    "passport": {
+      "description": "The renovation passport issued last (Art. 12, Annex VIII), or the roadmap before it is issued.",
+      "type": "object",
+      "properties": {
+        "issued": { "description": "Absent while the roadmap is not issued.", "$ref": "#/$defs/when" },
+        "registrations": { "description": "Where it was uploaded (Art. 12(7)).", "type": "array", "items": { "$ref": "#/$defs/registration" } },
+        "visit": { "description": "The on-site visit it rests on (Art. 12(4)).", "type": "string", "format": "date" },
+        "current": { "description": "The building's current performance (Annex VIII 1(a)).", "$ref": "#/$defs/figures" },
+        "target": { "description": "What the roadmap aims at, renewable share and self-consumption included (Annex VIII 1(g)).", "$ref": "#/$defs/figures" },
+        "targetYear": { "type": "integer" },
+        "heatNetwork": { "description": "Potential connection to an efficient district heating or cooling system (Annex VIII 1(f)).", "$ref": "#/$defs/heatNetwork" },
+        "assumptions": {
+          "description": "The calculation's assumptions (Annex VIII 1(e)(iv), 2(c)(vi)).",
+          "type": "object",
+          "properties": {
+            "prices": {
+              "description": "Energy prices per carrier, in `currency`.",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "carrier": { "$ref": "#/$defs/carrier" },
+                  "perKWh": { "description": "Price per kWh of final energy.", "type": "number", "minimum": 0 },
+                  "perYear": { "description": "Fixed price a year (a standing charge).", "type": "number", "minimum": 0 }
+                },
+                "required": ["carrier"],
+                "additionalProperties": true
+              }
+            },
+            "increase": { "description": "Price increase a year, as a fraction.", "type": "number" },
+            "method": { "description": "The calculation method.", "type": "string" },
+            "priceSource": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "oneStopShop": { "$ref": "#/$defs/contact" },
+        "steps": {
+          "description": "The steps of the staged renovation in their order, past renovations first (Annex VIII 1(b), 2(e)).",
+          "type": "array",
+          "items": { "$ref": "#/$defs/step" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "step": {
+      "description": "A step of a renovation roadmap, or a certificate's recommendation.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "year": { "description": "Year planned or done (Annex VIII 2(a)).", "type": "integer" },
+        "until": { "description": "Last year of the range planned.", "type": "integer" },
+        "trigger": { "description": "The occasion it waits for instead of a year.", "type": "string" },
+        "duration": { "description": "Time it takes to carry out, weeks of seven days (Annex VIII 2(b)(v)).", "type": "number", "minimum": 0 },
+        "status": {
+          "description": "`planned`, `done` (a past renovation, Annex VIII 2(e)) or `declined` by the owner. Absent: planned.",
+          "anyOf": [{ "enum": ["planned", "done", "declined"] }, { "$ref": "#/$defs/knownOrNewer" }]
+        },
+        "rationale": { "description": "Why it comes in this place (Annex VIII 1(d)).", "type": "string" },
+        "measures": {
+          "type": "array",
+          "items": {
+            "description": "A measure (Annex VIII 1(e)(i), 2(b)).",
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "description": { "type": "string" },
+              "options": { "description": "Technology and material options.", "type": "array", "items": { "type": "string" } },
+              "requirements": { "description": "Technical, safety and low-temperature conditions (Annex VIII 2(c)(iii), (v)).", "type": "array", "items": { "type": "string" } },
+              "trades": { "description": "Typical trades (Annex VIII 2(c)(i)).", "type": "array", "items": { "type": "string" } },
+              "advantages": { "description": "What speaks for it (Annex VIII 2(b)(i)).", "type": "array", "items": { "type": "string" } },
+              "disadvantages": { "description": "What speaks against it (Annex VIII 2(b)(i)).", "type": "array", "items": { "type": "string" } },
+              "lifetime": { "description": "Expected service life, whole years (Annex VIII 2(b)(vii)).", "type": "integer", "minimum": 0 },
+              "funding": {
+                "description": "Funding available, with links (Annex VIII 1(i)).",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": { "programme": { "type": "string" }, "url": { "type": "string" } },
+                  "required": ["programme"],
+                  "additionalProperties": true
+                }
+              },
+              "costs": {
+                "description": "Estimated costs in `currency` (Annex VIII 2(b)(iii), (vii)); commercial, given only where its holder shares them.",
+                "type": "object",
+                "properties": {
+                  "investment": { "description": "The whole investment.", "type": "number" },
+                  "anywayCosts": { "description": "The part of the investment that would be due anyway, as repair or replacement, without the renovation.", "type": "number" },
+                  "maintenanceYearly": { "description": "What keeping it in order costs a year once done (Annex VIII 2(b)(vii)).", "type": "number" },
+                  "funding": { "description": "The funding expected.", "type": "number" }
+                },
+                "additionalProperties": true
+              }
+            },
+            "required": ["label"],
+            "additionalProperties": true
+          }
+        },
+        "figures": { "description": "The building's figures after the step (Annex VIII 1(e)(ii) to (v); Art. 19(7)).", "$ref": "#/$defs/figures" }
+      },
+      "required": ["label"],
+      "additionalProperties": true
+    },
+    "smartReadiness": {
+      "description": "The smart readiness assessment issued last (Art. 15, Annex V 2, last paragraph).",
+      "type": "object",
+      "properties": {
+        "issued": { "$ref": "#/$defs/when" },
+        "value": { "description": "The indicator as a fraction, its percentage divided by 100.", "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["issued"],
+      "additionalProperties": true
+    }
+  }
+}

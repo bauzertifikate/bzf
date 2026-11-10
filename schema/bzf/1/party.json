@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/party.json",
+  "title": "bzf party",
+  "description": "A person or an organisation the project deals with, `parties/<id>.json`: the owner, the client, tenants, the Energieberater, a trade, with their roles, contact and the consents they gave. A party document never leaves the organisation that holds it; building documents name no person, and a share names the consent it relies on by this document's id and the consent's (versand.json). This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
+  "x-bzf-status": "draft",
+  "x-bzf-class": "party",
+  "type": "object",
+  "properties": {
+    "schema": { "$ref": "common.json#/$defs/schemaVersion" }
+  },
+  "required": ["schema"],
+  "additionalProperties": true,
+  "if": { "properties": { "schema": { "pattern": "^1\\." } } },
+  "then": { "$ref": "#/$defs/party" },
+  "$defs": {
+    "party": {
+      "type": "object",
+      "properties": {
+        "schema": { "$ref": "common.json#/$defs/schemaVersion" },
+        "id": { "$ref": "common.json#/$defs/id" },
+        "kind": { "anyOf": [{ "enum": ["person", "organisation"] }, { "$ref": "common.json#/$defs/newerValue" }] },
+        "name": { "type": "string" },
+        "roles": {
+          "description": "Its roles in the project. The owner is the principal owner of the building's data (the CEN logbook request's Part A).",
+          "type": "array",
+          "items": {
+            "anyOf": [
+              { "enum": ["owner", "client", "tenant", "manager", "energyAdvisor", "architect", "trade", "broker", "lender"] },
+              { "$ref": "common.json#/$defs/newerValue" }
+            ]
+          }
+        },
+        "address": { "$ref": "common.json#/$defs/address" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "identifiers": {
+          "description": "Its ids elsewhere: an Energieberater's number on the Energieeffizienz-Expertenliste, a company register entry.",
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/identifier" }
+        },
+        "consents": { "type": "array", "items": { "$ref": "#/$defs/consent" } }
+      },
+      "required": ["schema", "id"],
+      "additionalProperties": true
+    },
+    "consent": {
+      "description": "A consent the party gave: to whom, for what, covering which documents, when, and when it was withdrawn. A withdrawn consent stays, with its withdrawal, as the record of what was allowed when.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "to": { "description": "To whom: another party's id, or a name where it has no party document.", "type": "string" },
+        "purpose": { "description": "What for: \"Angebot Dachsanierung\", \"Energieausweis für den Verkauf\".", "type": "string" },
+        "documents": {
+          "description": "The documents it covers, by path or path prefix (\"buildings/\", \"roadmaps/0193….json\"); all building documents where absent.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "given": { "$ref": "common.json#/$defs/time" },
+        "until": { "description": "Until when it holds, where limited.", "$ref": "common.json#/$defs/date" },
+        "withdrawn": { "$ref": "common.json#/$defs/time" },
+        "source": { "description": "Where it is recorded: a signed form among the received files.", "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["id", "given"],
+      "additionalProperties": true
+    }
+  }
+}

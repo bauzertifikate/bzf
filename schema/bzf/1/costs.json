@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/costs.json",
+  "title": "bzf costs",
+  "description": "The costs of a roadmap's measures, `costs/<id>.json`: investment, the share of it that would be due anyway (Sowieso-Kosten, `anywayCosts`), and the funding each may get, as estimated at a date. Commercial: it never leaves the organisation that holds it, so a roadmap shared with a trade goes without it. The issued roadmap shows these figures as they were. This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
+  "x-bzf-status": "draft",
+  "x-bzf-class": "commercial",
+  "type": "object",
+  "properties": {
+    "schema": { "$ref": "common.json#/$defs/schemaVersion" }
+  },
+  "required": ["schema"],
+  "additionalProperties": true,
+  "if": { "properties": { "schema": { "pattern": "^1\\." } } },
+  "then": { "$ref": "#/$defs/costs" },
+  "$defs": {
+    "costs": {
+      "type": "object",
+      "properties": {
+        "schema": { "$ref": "common.json#/$defs/schemaVersion" },
+        "id": { "$ref": "common.json#/$defs/id" },
+        "roadmap": { "description": "The roadmap whose measures it prices.", "$ref": "common.json#/$defs/id" },
+        "date": { "description": "The price basis: when the costs were estimated.", "$ref": "common.json#/$defs/date" },
+        "measures": { "type": "array", "items": { "$ref": "#/$defs/measure" } }
+      },
+      "required": ["schema", "id", "roadmap", "measures"],
+      "additionalProperties": true
+    },
+    "measure": {
+      "description": "A measure's costs.",
+      "type": "object",
+      "properties": {
+        "measure": { "description": "The roadmap's measure.", "$ref": "common.json#/$defs/id" },
+        "investment": { "description": "The whole investment.", "$ref": "common.json#/$defs/money" },
+        "anywayCosts": { "description": "The part of the investment that would be due anyway, as repair or replacement, without the renovation (Sowieso- or Instandhaltungskosten).", "$ref": "common.json#/$defs/money" },
+        "maintenanceYearly": { "description": "What keeping it in order costs a year once done (EPBD Annex VIII 2(b)(vii)): servicing, inspections, wear.", "$ref": "common.json#/$defs/money" },
+        "funding": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "programme": { "description": "\"BEG EM\".", "type": "string" },
+              "rate": { "description": "The funding rate, as a fraction, bonuses included.", "type": "number", "minimum": 0, "maximum": 1 },
+              "amount": { "$ref": "common.json#/$defs/money" },
+              "note": { "description": "\"mit iSFP-Bonus\".", "type": "string" }
+            },
+            "required": ["programme"],
+            "additionalProperties": true
+          }
+        },
+        "source": { "description": "Where the figure came from: an offer among the received files, a cost database.", "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["measure"],
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "revision": "2b214ddf3326016519afcb268f63623b80b91a65265277668e4d020d87dd9078",
+  "app": "Energieberatung",
+  "appVersion": "0.9.0",
+  "kernelVersion": "0.4.0",
+  "device": "019a5e00-0000-7000-8000-0000000000ff",
+  "account": null,
+  "organisation": null,
+  "to": "Zimmerei Muster",
+  "time": "2026-11-06T10:05:00+01:00",
+  "type": "share",
+  "consent": {
+    "party": "019a5e00-0000-7000-8000-000000000030",
+    "consent": "019a5e00-0000-7000-8000-000000000031"
+  },
+  "roadmap": "019a5e00-0000-7000-8000-00000000002c",
+  "inputs": {
+    "buildings/019a5e00-0000-7000-8000-000000000002.json": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+    "roadmaps/019a5e00-0000-7000-8000-00000000002c.json": "454349e422f05297191ead13e21d3db520e5abef52055e4964b82fb213f593a1"
+  },
+  "files": []
+}

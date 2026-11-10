@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/consumption.json",
+  "title": "bzf consumption",
+  "description": "Measured consumption of a building, `consumption/<id>.json`: its meters and the amounts read or billed per period, each with where it came from (a bill among the received files). It is what a consumption-based Energieausweis takes, what the EPBD's Annex V may show as metered consumption and its databases hold (Art. 22), and the logbook's operation and use. Consumption of a home tells about the people in it, so it is shared only with the owner's consent like every building document. This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
+  "x-bzf-status": "draft",
+  "x-bzf-class": "building",
+  "type": "object",
+  "properties": {
+    "schema": { "$ref": "common.json#/$defs/schemaVersion" }
+  },
+  "required": ["schema"],
+  "additionalProperties": true,
+  "if": { "properties": { "schema": { "pattern": "^1\\." } } },
+  "then": { "$ref": "#/$defs/consumption" },
+  "$defs": {
+    "consumption": {
+      "type": "object",
+      "properties": {
+        "schema": { "$ref": "common.json#/$defs/schemaVersion" },
+        "id": { "$ref": "common.json#/$defs/id" },
+        "building": { "description": "The building it is of.", "$ref": "common.json#/$defs/id" },
+        "meters": { "type": "array", "items": { "$ref": "#/$defs/meter" } },
+        "periods": { "description": "Amounts read or billed, oldest first.", "type": "array", "items": { "$ref": "#/$defs/period" } },
+        "vacancy": {
+          "description": "Periods the building or part of it stood empty, as a share of its area, which a consumption-based method corrects for.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": { "$ref": "common.json#/$defs/date" },
+              "to": { "$ref": "common.json#/$defs/date" },
+              "share": { "description": "The share of the area that stood empty, as a fraction.", "type": "number", "minimum": 0, "maximum": 1 }
+            },
+            "required": ["from", "to", "share"],
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": ["schema", "id", "building"],
+      "additionalProperties": true
+    },
+    "meter": {
+      "description": "A meter, or a supply billed without one (oil by delivery, wood by the stere).",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "description": "Its number or name: \"Gaszähler 7 GMT 123456\".", "type": "string" },
+        "carrier": { "$ref": "common.json#/$defs/carrier" },
+        "services": { "description": "What its carrier is used for, where known.", "type": "array", "items": { "$ref": "common.json#/$defs/service" } },
+        "system": { "description": "The meter in the building's systems, where it is one.", "$ref": "common.json#/$defs/id" },
+        "serves": { "description": "The parts or spaces it measures; all of the building where absent.", "type": "array", "items": { "$ref": "common.json#/$defs/id" } }
+      },
+      "required": ["id"],
+      "additionalProperties": true
+    },
+    "period": {
+      "description": "An amount over a period: as read from the meter, as billed, or estimated.",
+      "type": "object",
+      "properties": {
+        "meter": { "$ref": "common.json#/$defs/id" },
+        "carrier": { "description": "Where it has no meter, its carrier.", "$ref": "common.json#/$defs/carrier" },
+        "from": { "$ref": "common.json#/$defs/date" },
+        "to": { "$ref": "common.json#/$defs/date" },
+        "amount": { "type": "number", "minimum": 0 },
+        "unit": {
+          "description": "The unit the amount is in, as read or billed: kWh, MWh, m³, l, kg, t, rm (stacked cubic metres), srm (loose cubic metres).",
+          "anyOf": [{ "enum": ["kWh", "MWh", "m3", "l", "kg", "t", "rm", "srm"] }, { "type": "string" }]
+        },
+        "kind": {
+          "anyOf": [{ "enum": ["reading", "bill", "estimate"] }, { "$ref": "common.json#/$defs/newerValue" }],
+          "default": "bill"
+        },
+        "source": { "description": "Where it came from: the bill among the received files.", "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["from", "to", "amount", "unit"],
+      "additionalProperties": true
+    }
+  }
+}

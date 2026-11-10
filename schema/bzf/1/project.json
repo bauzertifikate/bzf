@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/project.json",
+  "title": "bzf project root",
+  "description": "The project's root document, `project.json`: the frame every plan coordinate is in, and the buildings and plan states it holds. This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
+  "x-bzf-status": "stable",
+  "x-bzf-class": "building",
+  "type": "object",
+  "properties": {
+    "schema": { "$ref": "common.json#/$defs/schemaVersion" }
+  },
+  "required": ["schema"],
+  "additionalProperties": true,
+  "if": { "properties": { "schema": { "pattern": "^1\\." } } },
+  "then": { "$ref": "#/$defs/root" },
+  "$defs": {
+    "root": {
+      "type": "object",
+      "properties": {
+        "schema": { "$ref": "common.json#/$defs/schemaVersion" },
+        "id": { "description": "The project's id, as its `.bzf` says.", "$ref": "common.json#/$defs/id" },
+        "frame": { "$ref": "#/$defs/frame" },
+        "language": {
+          "description": "The language of the project's free text (labels, names, notes, descriptions, reasons), as a BCP 47 tag: \"de\", \"de-AT\". Keys and listed values are English in every language; only what people write is in this one.",
+          "type": "string",
+          "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{1,8})*$",
+          "default": "de"
+        },
+        "buildings": {
+          "description": "Its buildings' documents, `buildings/<id>.json`.",
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/id" }
+        },
+        "planStates": {
+          "description": "Its plan states, oldest first, `plans/<id>.json`.",
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/id" }
+        },
+        "classes": {
+          "description": "The class of the apps' own documents by path prefix (\"energieberatung/\": \"building\"), so that a share leaves out what may not leave the organisation. The documents this spec defines have their class in their schema; an app's document without one here counts as party data and stays.",
+          "type": "object",
+          "additionalProperties": { "$ref": "common.json#/$defs/documentClass" }
+        },
+        "needs": {
+          "description": "The lowest app version that reads everything in the project, once something needs a newer one than the schema version says.",
+          "type": "string"
+        }
+      },
+      "required": ["schema", "id", "frame"],
+      "additionalProperties": true
+    },
+    "frame": {
+      "description": "The project's frame, fixed when the project is created: plan coordinates are integer millimetres in it and heights are relative to its ±0,00. Each source has its own transform into it. With `origin` and `crs` it is a local engineering frame with a map conversion, as IFC's IfcMapConversion.",
+      "type": "object",
+      "properties": {
+        "north": {
+          "description": "The compass bearing of the frame's +y axis, degrees clockwise from north: 0 when +y points north, 90 when east.",
+          "type": "number",
+          "default": 0
+        },
+        "northConfirmed": {
+          "description": "Whether `north` was confirmed or aligned with LoD2; until then it is what the plans' north arrow gives where `northSource` names one, else the assumption that up in the plan is north.",
+          "type": "boolean",
+          "default": false
+        },
+        "northSource": {
+          "description": "The north arrow `north` was read from: its plan state, file, layer and entity. Absent while north is assumed or LoD2's.",
+          "$ref": "common.json#/$defs/source"
+        },
+        "origin": {
+          "description": "Where the frame's origin lies, metres (easting, northing) in `crs`, where known.",
+          "type": "array",
+          "prefixItems": [{ "type": "number" }, { "type": "number" }],
+          "items": false,
+          "minItems": 2
+        },
+        "crs": { "description": "The coordinate reference system of `origin`: \"EPSG:25832\" (ETRS89 / UTM 32N).", "type": "string" },
+        "datum": { "description": "The height of ±0,00 above sea level (NHN), metres, where known.", "type": "number" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/plan-import.json",
+  "title": "bzf plan import",
+  "description": "An import's result, `imports/<id>.json`, kept unchanged with its plan state: the buildings as the plans gave them, with the reader, the kernel and the settings that made them, and the ids carried over from the previous import. It is the base for merging the next plan state with the edits made since. This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
+  "x-bzf-status": "draft",
+  "x-bzf-class": "building",
+  "type": "object",
+  "properties": {
+    "schema": { "$ref": "common.json#/$defs/schemaVersion" }
+  },
+  "required": ["schema"],
+  "additionalProperties": true,
+  "if": { "properties": { "schema": { "pattern": "^1\\." } } },
+  "then": { "$ref": "#/$defs/planImport" },
+  "$defs": {
+    "planImport": {
+      "type": "object",
+      "properties": {
+        "schema": { "$ref": "common.json#/$defs/schemaVersion" },
+        "planState": { "description": "The plan state it read.", "$ref": "common.json#/$defs/id" },
+        "reader": { "description": "The reader and its version: \"aufmass 0.5.0\".", "type": "string" },
+        "kernel": { "description": "The kernel version.", "type": "string" },
+        "settings": { "description": "The settings it read with (the joint, the office's layer names), as the reader keeps them: opaque to other readers." },
+        "buildings": {
+          "description": "The buildings as the plans gave them, each a building document.",
+          "type": "array",
+          "items": { "$ref": "building.json" }
+        },
+        "cadastre": {
+          "description": "The cadastre's buildings a site plan of it shows, around the buildings and under them: they place the plans in a LoD2 scene, whose footprints come from the cadastre too.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/footprint" }
+        },
+        "lineage": {
+          "description": "The previous import's items that this one's carry on, and those that replace several or are replaced.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/lineage" }
+        },
+        "solids": {
+          "description": "The solids its buildings' elements came as, by the key an element's `solid` names (Aufmaß: the element's id). A volume is measured from its solid while the element's plate is unchanged: a wall layer cut by the roof across its thickness holds less than its plate times its thickness.",
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/solid" }
+        }
+      },
+      "required": ["schema", "planState", "reader", "kernel", "buildings"],
+      "additionalProperties": true
+    },
+    "footprint": {
+      "description": "A building of the cadastre as a site plan shows it.",
+      "type": "object",
+      "properties": {
+        "outline": { "description": "Its outline, mm in the frame, counter-clockwise.", "$ref": "common.json#/$defs/ring" },
+        "source": { "description": "The plan, layer and entity it is.", "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["outline"],
+      "additionalProperties": true
+    },
+    "solid": {
+      "description": "A solid as its faces, as the reader gave them: in metres in the frame, not rounded to the millimetre (a 6 cm roof plate of 80 m² would gain or lose 40 litres).",
+      "type": "object",
+      "properties": {
+        "faces": {
+          "description": "Each face's loops of corners, the outer one first, each turning counter-clockwise seen from outside (a hole's the other way): x, y and height, m.",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 }
+            }
+          }
+        }
+      },
+      "required": ["faces"],
+      "additionalProperties": true
+    },
+    "lineage": {
+      "description": "Items of the previous import and what they became: the same item (one id each way), or a split or a merge.",
+      "type": "object",
+      "properties": {
+        "from": { "description": "The previous import's items.", "type": "array", "items": { "$ref": "common.json#/$defs/id" } },
+        "to": { "description": "What they became.", "type": "array", "items": { "$ref": "common.json#/$defs/id" } }
+      },
+      "required": ["from", "to"],
+      "additionalProperties": true
+    }
+  }
+}

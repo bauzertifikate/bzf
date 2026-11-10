@@ -1,0 +1,42 @@
+{
+  "files": [
+    {
+      "id": "019a5e00-0000-7000-8000-000000000032",
+      "name": "LoD2-Szene.json",
+      "folder": "Dokumente",
+      "sha256": "4f48f7207cebf92638debb5694e4a8677350cf88a9e98e73c6c466b6b1d43890",
+      "size": 48211,
+      "received": "2026-10-12T09:00:00+02:00",
+      "type": "scene",
+      "from": "LGL Baden-Württemberg (made up)",
+      "licence": {
+        "id": "dl-de/by-2.0",
+        "url": "https://www.govdata.de/dl-de/by-2-0"
+      },
+      "attribution": "© LGL, www.lgl-bw.de (example)"
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-000000000033",
+      "name": "Kessel Typenschild.jpg",
+      "folder": "Fotos",
+      "sha256": "a08b6abb317ee796b2536ccb29d4d7c7f1297c5142c15e6a4f86e87579199189",
+      "size": 812345,
+      "received": "2026-10-14T11:20:00+02:00",
+      "type": "photo",
+      "about": [
+        "019a5e00-0000-7000-8000-00000000001a"
+      ]
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-000000000034",
+      "name": "Gasabrechnung 2025.pdf",
+      "folder": "Dokumente",
+      "sha256": "ee980f8a7253e08be2a1fdbfe4157283fc8eb43c233ce06224c808e634473d19",
+      "size": 90112,
+      "received": "2026-10-14T11:30:00+02:00",
+      "type": "bill",
+      "from": "Eigentümerin",
+      "mayPassOn": false
+    }
+  ]
+}

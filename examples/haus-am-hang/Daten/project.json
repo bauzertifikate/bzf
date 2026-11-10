@@ -1,0 +1,23 @@
+{
+  "schema": "1.0",
+  "id": "019a5e00-0000-7000-8000-000000000001",
+  "frame": {
+    "north": 0,
+    "northConfirmed": true,
+    "origin": [
+      541200.0,
+      5291300.0
+    ],
+    "crs": "EPSG:25832",
+    "datum": 612.4
+  },
+  "buildings": [
+    "019a5e00-0000-7000-8000-000000000002"
+  ],
+  "planStates": [
+    "019a5e00-0000-7000-8000-00000000001f"
+  ],
+  "classes": {
+    "energieberatung/": "building"
+  }
+}

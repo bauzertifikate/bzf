@@ -1,0 +1,55 @@
+{
+  "revision": "2b214ddf3326016519afcb268f63623b80b91a65265277668e4d020d87dd9078",
+  "app": "Energieberatung",
+  "appVersion": "0.9.0",
+  "kernelVersion": "0.4.0",
+  "device": "019a5e00-0000-7000-8000-0000000000ff",
+  "account": null,
+  "organisation": null,
+  "to": "Eigentümerin",
+  "time": "2026-10-20T15:00:00+02:00",
+  "type": "epc",
+  "validUntil": "2036-10-19",
+  "basis": "calculated",
+  "method": "DIN/TS 18599:2025-10",
+  "registrations": [
+    {
+      "register": "de:dibt",
+      "id": "BW-2026-000000000 (example)",
+      "time": "2026-10-20T14:58:00+02:00"
+    }
+  ],
+  "figures": [
+    {
+      "state": "current",
+      "class": "F",
+      "classScale": "de:geg",
+      "primaryEnergy": 182,
+      "finalEnergy": 165,
+      "emissions": 41,
+      "renewableShare": 0,
+      "area": 192,
+      "areaKind": "referenceFloorArea",
+      "areaKindNational": "de:AN"
+    }
+  ],
+  "inputs": {
+    "buildings/019a5e00-0000-7000-8000-000000000002.json": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+    "project.json": "148de9c5a7a44d19e56cd9ae1a554bf67847afb0c58f6e12fa29ac7ddfca9940"
+  },
+  "files": [
+    {
+      "name": "Energieausweis.pdf",
+      "sha256": "05b2da933e0e628ec1dfbb17ff1295bf1a79f10f8a8227ffb34a5707b58bacc3",
+      "size": 412000,
+      "mediaType": "application/pdf"
+    },
+    {
+      "name": "Energieausweis.xml",
+      "sha256": "8e4f9fad0f1bb678c13ccd81106baeb6681138fe9cc23aa109bb559cfd1eb887",
+      "size": 18000,
+      "mediaType": "application/xml",
+      "format": "dibt-geg-2027"
+    }
+  ]
+}

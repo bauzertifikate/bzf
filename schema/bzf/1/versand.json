@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/versand.json",
+  "title": "bzf issue record",
+  "description": "What an issue records beside its files, `Versendet/<date> <title>/versand.json`: the revision they came from, the app and kernel version, the writer, to whom and when, and each file by name and hash. Written once with the folder and never again; the files are kept as objects too. The files' own formats (PDF, GAEB, DIBt's data, BAFA's iSFP data) are their owners' and are not described here; each file names its format.",
+  "x-bzf-status": "stable",
+  "type": "object",
+  "properties": {
+    "revision": {
+      "description": "The revision the files were made from.",
+      "anyOf": [{ "$ref": "common.json#/$defs/hash" }, { "type": "null" }]
+    },
+    "app": { "type": "string" },
+    "appVersion": { "type": "string" },
+    "kernelVersion": { "type": "string" },
+    "device": { "description": "The device that issued it: an opaque id.", "type": "string" },
+    "account": { "description": "The account it was issued for: an opaque id, or null.", "type": ["string", "null"] },
+    "organisation": { "description": "The organisation it was issued for: an opaque id, or null.", "type": ["string", "null"] },
+    "to": { "description": "To whom: \"Familie Müller\".", "type": "string" },
+    "time": { "description": "When.", "$ref": "common.json#/$defs/time" },
+    "type": {
+      "description": "What was issued, so a logbook or a database can find it: an energy performance certificate, a renovation roadmap (the iSFP, Germany's renovation passport), an inspection report, a smart readiness assessment (EPBD Art. 15, its value in `figures`), an offer, quantities, a share of the project's documents with another organisation.",
+      "anyOf": [
+        { "enum": ["epc", "renovationRoadmap", "inspection", "sri", "offer", "quantities", "share", "other"] },
+        { "$ref": "common.json#/$defs/newerValue" }
+      ]
+    },
+    "validUntil": { "description": "The last day it is valid, inclusive (an Energieausweis: ten years at most).", "$ref": "common.json#/$defs/date" },
+    "basis": {
+      "description": "How its figures were obtained: `calculated` by an energy balance, or `measured` from metered consumption (EPBD Annex I 1; a German Verbrauchsausweis).",
+      "anyOf": [{ "enum": ["calculated", "measured"] }, { "$ref": "common.json#/$defs/newerValue" }]
+    },
+    "method": { "description": "The method and edition the figures come from: \"DIN/TS 18599:2025-10\", \"EN ISO 52000-1:2017\".", "type": "string" },
+    "inspected": {
+      "description": "What an issue of type `inspection` inspected (EPBD Art. 23, 24): the systems by id, the kind of installation, and the outcome in a sentence.",
+      "type": "object",
+      "properties": {
+        "systems": { "type": "array", "items": { "$ref": "common.json#/$defs/id" } },
+        "kind": { "anyOf": [{ "enum": ["heating", "ventilation", "airConditioning", "combined"] }, { "$ref": "common.json#/$defs/newerValue" }] },
+        "outcome": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "assessments": {
+      "description": "What the issuer assessed and the document states, yes or no (EPBD Annex V, Art. 19(8)): whether the building can react to external signals and adjust its consumption, whether its heating, its hot water and its air-conditioning can run at low or more efficient temperatures, and the overheating risk analysis.",
+      "type": "object",
+      "properties": {
+        "reactsToSignals": { "type": "boolean" },
+        "lowTemperatureHeating": { "type": "boolean" },
+        "lowTemperatureHotWater": { "type": "boolean" },
+        "lowTemperatureCooling": { "type": "boolean" },
+        "heatNetwork": {
+          "description": "A connection to a district heating or cooling network, or the potential of one, as the document states it (EPBD Annex V 2(r)): the values of a roadmap's `heatNetwork` status.",
+          "anyOf": [{ "enum": ["connected", "available", "planned", "none", "unknown"] }, { "$ref": "common.json#/$defs/newerValue" }]
+        },
+        "overheatingRisk": {
+          "description": "The result of an overheating risk analysis (EPBD Annex V 2(h)): `low`, `high`, or a method's own value, with the method.",
+          "type": "object",
+          "properties": { "result": { "type": "string" }, "method": { "type": "string" } },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "oneStopShop": {
+      "description": "The one-stop shop for renovation advice the document names (EPBD Annex V 1(f), Annex VIII 1(j)): its name and how to reach it.",
+      "type": "object",
+      "properties": { "name": { "type": "string" }, "url": { "type": "string" }, "email": { "type": "string" } },
+      "additionalProperties": true
+    },
+    "registrations": {
+      "description": "Where it was registered or uploaded, with the id it got there: the DIBt registration number, a national database's receipt (EPBD Art. 22). Each is an identifier (common.json `identifier`) with the time it was given: `register` is its scheme, `id` its value.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "register": { "description": "The register, national ones with their country: \"de:dibt\", \"de:bafa\" (written bare before 2026-11-08, read as these).", "type": "string" },
+          "id": { "description": "The id it got there.", "type": "string" },
+          "time": { "$ref": "common.json#/$defs/time" }
+        },
+        "required": ["register", "id"],
+        "additionalProperties": true
+      }
+    },
+    "roadmap": { "description": "The roadmap a renovation roadmap or an offer was made from.", "$ref": "common.json#/$defs/id" },
+    "consent": {
+      "description": "The consent a share relies on: the party document that records it and the consent's id there. Building documents leave the organisation only with one (README, \"Privacy\").",
+      "type": "object",
+      "properties": {
+        "party": { "$ref": "common.json#/$defs/id" },
+        "consent": { "$ref": "common.json#/$defs/id" }
+      },
+      "required": ["party", "consent"],
+      "additionalProperties": true
+    },
+    "figures": {
+      "description": "The headline figures of what was issued, copied as issued so a logbook or a database can read them without the issued files' own formats; the issued files remain what counts. One entry per state: the building as it is, after each step of a roadmap, the target. The figures are the issuing method's, under its standard conditions.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "state": { "description": "`current`, `target`, or a roadmap step's id.", "type": "string", "minLength": 1 },
+          "class": { "description": "The energy performance class as issued: \"D\", on `classScale`.", "type": "string" },
+          "classScale": {
+            "description": "The scale `class` and `emissionClass` are on: `eu` for the EPBD's harmonised A to G (Art. 19(2)), or a national one, `de:geg` (A+ to H, GEG/GModG Anlage 10).",
+            "anyOf": [{ "enum": ["eu", "de:geg"] }, { "$ref": "common.json#/$defs/newerValue" }]
+          },
+          "primaryEnergy": { "description": "Primary energy, kWh/(m²·a): the non-renewable part where the method separates it, else the total. A writer that has both fills `primaryEnergyTotal` too.", "type": "number" },
+          "finalEnergy": { "description": "Final energy, kWh/(m²·a).", "type": "number" },
+          "energyNeed": { "description": "Energy needs, kWh/(m²·a).", "type": "number" },
+          "emissions": { "description": "Operational greenhouse gas emissions, kg CO₂-eq/(m²·a).", "type": "number" },
+          "lifeCycleGwp": { "description": "Life-cycle global warming potential, kg CO₂-eq/m² (EPBD Annex III), where calculated.", "type": "number" },
+          "renewableShare": { "description": "Renewable energy produced on site as a fraction of the building's final energy use (EPBD Annex V 1(d)); above 1 where it produces more than it uses.", "type": "number", "minimum": 0 },
+          "energyCosts": { "description": "Energy costs per year at the stated prices.", "$ref": "common.json#/$defs/money" },
+          "standard": { "description": "A standard reached: `nzeb`, `zeb` (EPBD), or a national one, `de:effizienzhaus-70`.", "type": "string" },
+          "area": { "description": "The reference area the per-m² figures are on, m², and which it is.", "type": "number", "minimum": 0 },
+          "areaKind": {
+            "description": "Which area `area` is: `referenceFloorArea` (EPBD Art. 2(52)), `usefulFloorArea` (Art. 2(51)), `netFloorArea`, `grossFloorArea`, `livingArea`.",
+            "anyOf": [{ "enum": ["referenceFloorArea", "usefulFloorArea", "netFloorArea", "grossFloorArea", "livingArea"] }, { "$ref": "common.json#/$defs/newerValue" }]
+          },
+          "areaKindNational": { "description": "Its national definition, `<country>:<code>`: `de:AN` (GEG Gebäudenutzfläche), `de:NGF` (Nettogrundfläche, DIN 277), `de:WoFlV` (Wohnfläche).", "type": "string" },
+          "primaryEnergyTotal": { "description": "Total primary energy, renewable and non-renewable, kWh/(m²·a) (EPBD Annex I 3).", "type": "number" },
+          "primaryEnergyRenewable": { "description": "Renewable primary energy, kWh/(m²·a) (EPBD Annex I 3).", "type": "number" },
+          "renewableProduction": { "description": "Renewable energy produced on site, kWh a year (EPBD Annex V 1: renewable energy production in kWh or MWh). Its carrier and source follow from the systems that produce it.", "type": "number", "minimum": 0 },
+          "selfConsumption": { "description": "The share of the renewable energy produced on site that the building uses itself, as a fraction (EPBD Annex VIII 1(g)).", "type": "number", "minimum": 0, "maximum": 1 },
+          "emissionClass": { "description": "A greenhouse gas emission class, where the national scheme has one (EPBD Annex V 2(b)).", "type": "string" },
+          "carbonRemovals": { "description": "Carbon removals by temporary storage in or on the building, kg CO₂-eq/m² (EPBD Annex V 2(c)).", "type": "number" },
+          "pm25": { "description": "Operational fine particulate matter (PM2.5) emissions, g/(m²·a) (EPBD Annex V 2(t)).", "type": "number", "minimum": 0 },
+          "smartReadiness": { "description": "The smart readiness indicator as a fraction, its percentage divided by 100 (EPBD Art. 15), on an issue of type `sri`.", "type": "number", "minimum": 0, "maximum": 1 },
+          "references": {
+            "description": "The reference values the document states beside the figures, kWh/(m²·a) of primary energy (EPBD Art. 19(1), Annex VIII 2(b)(ii)): the minimum energy performance requirement, the minimum energy performance standard (MEPS), the nearly zero-energy and the zero-emission requirement, as they apply to this building.",
+            "type": "object",
+            "properties": {
+              "minimumRequirement": { "type": "number" },
+              "meps": { "type": "number" },
+              "nzeb": { "type": "number" },
+              "zeb": { "type": "number" }
+            },
+            "additionalProperties": true
+          },
+          "lifeCycleGwpStages": {
+            "description": "Life-cycle global warming potential per life-cycle stage of EN 15978, kg CO₂-eq/m² of useful floor area over 50 years (EPBD Annex III): the modules as keys (\"A1-A3\", \"A4-A5\", \"B1-B7\", \"C1-C4\", \"D\").",
+            "type": "object",
+            "additionalProperties": { "type": "number" }
+          },
+          "uses": {
+            "description": "The figures per energy use (EPBD Annex V 2(a), Annex I 2): `heating`, `cooling`, `hotWater`, `ventilation`, `lighting`, each with its energy need, final and primary energy, kWh/(m²·a), and peak load, kW.",
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "energyNeed": { "type": "number" },
+                "finalEnergy": { "type": "number" },
+                "primaryEnergy": { "type": "number" },
+                "peakLoad": { "description": "kW.", "type": "number", "minimum": 0 }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "required": ["state"],
+        "additionalProperties": true
+      }
+    },
+    "inputs": {
+      "description": "The documents it was made from, path → the hash of the document's canonical JSON, kept as objects with it: what a database asks for beside the certificate (EPBD Art. 20(8): \"all necessary data required for the calculation\"), and what a share passes on.",
+      "type": "object",
+      "additionalProperties": { "$ref": "common.json#/$defs/hash" }
+    },
+    "files": {
+      "description": "The files issued, in the folder beside this record.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "description": "Its name in the folder; never `versand.json`.", "type": "string", "minLength": 1 },
+          "sha256": { "$ref": "common.json#/$defs/hash" },
+          "size": { "description": "Bytes.", "type": "integer", "minimum": 0 },
+          "mediaType": { "description": "Its media type: \"application/pdf\", \"application/xml\".", "type": "string" },
+          "format": {
+            "description": "The format its owner defines, by a short id: \"dibt-geg-2027\" (the GModG Energieausweis' data), \"bafa-isfp\" (BAFA's iSFP data), \"gaeb-x83\". The format itself is not described here.",
+            "type": "string"
+          }
+        },
+        "required": ["name", "sha256"],
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": ["revision", "to", "time", "files"],
+  "additionalProperties": true
+}

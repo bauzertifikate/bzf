@@ -1,0 +1,302 @@
+{
+  "format": "bzf-epbd/0.1",
+  "language": "de",
+  "currency": "EUR",
+  "written": {
+    "time": "2026-11-08T18:00:00+01:00",
+    "app": "bauzertifikate Aufmaß",
+    "appVersion": "0.5.0",
+    "kernelVersion": "0.4.0",
+    "project": "019a5e00-0000-7000-8000-000000000001",
+    "revision": "2b214ddf3326016519afcb268f63623b80b91a65265277668e4d020d87dd9078"
+  },
+  "building": {
+    "identifiers": [
+      {
+        "scheme": "de:alkis",
+        "value": "DEBWL0000example"
+      }
+    ],
+    "address": {
+      "street": "Am Hang",
+      "number": "7",
+      "postcode": "88212",
+      "city": "Musterstadt",
+      "country": "DE"
+    },
+    "location": {
+      "crs": "EPSG:25832",
+      "easting": 541200.0,
+      "northing": 5291300.0
+    },
+    "year": 1968,
+    "use": "residential",
+    "category": "singleFamily",
+    "dwellings": 1,
+    "n50": 6.0
+  },
+  "systems": [
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001a",
+      "kind": "boiler",
+      "type": "lowTemperature",
+      "services": [
+        "heating",
+        "hotWater"
+      ],
+      "carrier": "naturalGas",
+      "output": 24.0,
+      "year": 1994,
+      "endOfLife": 2028
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001b",
+      "kind": "thermalStorage",
+      "type": "hotWater",
+      "services": [
+        "hotWater"
+      ],
+      "year": 1994,
+      "volume": 160.0
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001c",
+      "kind": "distribution",
+      "services": [
+        "heating"
+      ],
+      "flowTemperature": 70.0
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001d",
+      "kind": "emitters",
+      "type": "radiators",
+      "services": [
+        "heating"
+      ],
+      "flowTemperature": 70.0
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001e",
+      "kind": "meter",
+      "type": "naturalGas"
+    }
+  ],
+  "consumption": [
+    {
+      "carrier": "naturalGas",
+      "services": [
+        "heating",
+        "hotWater"
+      ],
+      "from": "2023-01-01",
+      "to": "2023-12-31",
+      "amount": 23100.0,
+      "unit": "kWh"
+    },
+    {
+      "carrier": "naturalGas",
+      "services": [
+        "heating",
+        "hotWater"
+      ],
+      "from": "2024-01-01",
+      "to": "2024-12-31",
+      "amount": 21800.0,
+      "unit": "kWh"
+    },
+    {
+      "carrier": "naturalGas",
+      "services": [
+        "heating",
+        "hotWater"
+      ],
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "amount": 22400.0,
+      "unit": "kWh"
+    }
+  ],
+  "certificate": {
+    "issued": "2026-10-20T15:00:00+02:00",
+    "validUntil": "2036-10-19",
+    "registrations": [
+      {
+        "scheme": "de:dibt",
+        "value": "BW-2026-000000000 (example)",
+        "time": "2026-10-20T14:58:00+02:00"
+      }
+    ],
+    "basis": "calculated",
+    "method": "DIN/TS 18599:2025-10",
+    "figures": {
+      "class": "F",
+      "classScale": "de:geg",
+      "primaryEnergy": 182.0,
+      "finalEnergy": 165.0,
+      "emissions": 41.0,
+      "renewableShare": 0.0,
+      "area": 192.0,
+      "areaKind": "referenceFloorArea",
+      "areaKindNational": "de:AN"
+    },
+    "lowTemperatureHeating": false,
+    "passportAvailable": true,
+    "heatNetwork": "none"
+  },
+  "passport": {
+    "issued": "2026-11-06T12:00:00+01:00",
+    "visit": "2026-10-14",
+    "current": {
+      "primaryEnergy": 182.0,
+      "finalEnergy": 165.0,
+      "emissions": 41.0,
+      "energyCosts": 2860.0
+    },
+    "target": {
+      "class": "A",
+      "primaryEnergy": 41.0,
+      "finalEnergy": 28.0,
+      "emissions": 9.0,
+      "standard": "de:effizienzhaus-70"
+    },
+    "targetYear": 2031,
+    "heatNetwork": "none",
+    "assumptions": {
+      "prices": [
+        {
+          "carrier": "naturalGas",
+          "perKWh": 0.12,
+          "perYear": 180.0
+        },
+        {
+          "carrier": "electricity",
+          "perKWh": 0.28
+        }
+      ],
+      "increase": 0.03,
+      "method": "DIN V 18599:2018-09",
+      "priceSource": "Annahme des Beispiels"
+    },
+    "steps": [
+      {
+        "id": "019a5e00-0000-7000-8000-000000000020",
+        "label": "Fenster (1985)",
+        "year": 1985,
+        "status": "done",
+        "measures": [
+          {
+            "label": "Fenster mit Isolierverglasung"
+          }
+        ]
+      },
+      {
+        "id": "019a5e00-0000-7000-8000-000000000021",
+        "label": "Maßnahmenpaket 1: Oberste Geschossdecke und Abgleich",
+        "year": 2027,
+        "rationale": "Günstig und ohne Gerüst; senkt die Heizlast vor dem Kesseltausch.",
+        "measures": [
+          {
+            "label": "Oberste Geschossdecke mit 24 cm dämmen",
+            "options": [
+              "Mineralwolle",
+              "Holzfaser",
+              "Zellulose eingeblasen"
+            ],
+            "trades": [
+              "Zimmerer"
+            ],
+            "lifetime": 40,
+            "funding": [
+              {
+                "programme": "BEG EM"
+              }
+            ]
+          },
+          {
+            "label": "Hydraulischer Abgleich",
+            "trades": [
+              "Heizungsbauer"
+            ]
+          }
+        ],
+        "figures": {
+          "primaryEnergy": 151.0,
+          "finalEnergy": 137.0,
+          "emissions": 34.0,
+          "energyCosts": 2390.0
+        }
+      },
+      {
+        "id": "019a5e00-0000-7000-8000-000000000022",
+        "label": "Maßnahmenpaket 2: Außenwand",
+        "year": 2029,
+        "rationale": "Mit dem fälligen Neuanstrich der Fassade; danach reicht eine kleine Wärmepumpe.",
+        "measures": [
+          {
+            "label": "Außenwand mit 16 cm WDVS dämmen",
+            "options": [
+              "EPS",
+              "Mineralwolle",
+              "Holzfaser"
+            ],
+            "trades": [
+              "Stuckateur"
+            ],
+            "lifetime": 40,
+            "funding": [
+              {
+                "programme": "BEG EM"
+              }
+            ]
+          }
+        ],
+        "figures": {
+          "primaryEnergy": 98.0,
+          "finalEnergy": 89.0,
+          "emissions": 22.0,
+          "energyCosts": 1640.0
+        }
+      },
+      {
+        "id": "019a5e00-0000-7000-8000-000000000023",
+        "label": "Maßnahmenpaket 3: Wärmepumpe und Photovoltaik",
+        "year": 2030,
+        "until": 2032,
+        "trigger": "wenn der Kessel ausgetauscht werden muss",
+        "measures": [
+          {
+            "label": "Luft/Wasser-Wärmepumpe statt Gaskessel",
+            "requirements": [
+              "Vorlauftemperatur 50 °C nach Paket 2 geprüft"
+            ],
+            "trades": [
+              "Heizungsbauer",
+              "Elektriker"
+            ],
+            "lifetime": 20,
+            "funding": [
+              {
+                "programme": "BEG EM"
+              }
+            ]
+          },
+          {
+            "label": "Photovoltaik 8 kWp auf dem Süddach",
+            "trades": [
+              "Elektriker"
+            ],
+            "lifetime": 25
+          }
+        ],
+        "figures": {
+          "primaryEnergy": 41.0,
+          "finalEnergy": 28.0,
+          "emissions": 9.0,
+          "energyCosts": 980.0,
+          "standard": "de:effizienzhaus-70"
+        }
+      }
+    ]
+  }
+}

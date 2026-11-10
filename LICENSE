@@ -1,0 +1,14 @@
+BZF is a multi-licensed specification repository.
+
+Copyright (c) 2026 Bauzertifikate contributors
+
+Each part is offered under the following terms:
+
+- Documentation (*.md): Creative Commons Attribution 4.0 International (CC-BY-4.0).
+- Schemas (schema/), example data (examples/) and IDS definitions (ids/):
+  Creative Commons Zero v1.0 Universal (CC0-1.0).
+- Source code (tools/), scripts and CI configuration: Apache License 2.0 OR MIT,
+  at the recipient's option.
+
+Full licence texts are included in LICENSES/.
+These terms do not license third-party data stored by users in their own BZF projects.

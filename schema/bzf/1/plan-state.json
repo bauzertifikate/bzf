@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/plan-state.json",
+  "title": "bzf plan state",
+  "description": "A plan state, `plans/<id>.json`: the files that came together, by their hash, each with its storey and its transform into the frame. A partial update shares the files that didn't change; the folder `Zeichnungen/` holds them under their own names, and this document, not the folder, says what belongs to which state. This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
+  "x-bzf-status": "draft",
+  "x-bzf-class": "building",
+  "type": "object",
+  "properties": {
+    "schema": { "$ref": "common.json#/$defs/schemaVersion" }
+  },
+  "required": ["schema"],
+  "additionalProperties": true,
+  "if": { "properties": { "schema": { "pattern": "^1\\." } } },
+  "then": { "$ref": "#/$defs/planState" },
+  "$defs": {
+    "planState": {
+      "type": "object",
+      "properties": {
+        "schema": { "$ref": "common.json#/$defs/schemaVersion" },
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "description": "\"Planstand 2\", \"Index b\".", "type": "string" },
+        "from": { "description": "From whom it came.", "type": "string" },
+        "received": { "description": "When it came.", "$ref": "common.json#/$defs/time" },
+        "note": { "description": "A note.", "type": "string" },
+        "previous": { "description": "The plan state it replaces.", "$ref": "common.json#/$defs/id" },
+        "files": { "description": "Its files.", "type": "array", "items": { "$ref": "#/$defs/file" } }
+      },
+      "required": ["schema", "id", "files"],
+      "additionalProperties": true
+    },
+    "file": {
+      "description": "A file of a plan state.",
+      "type": "object",
+      "properties": {
+        "hash": { "description": "Its content's hash, as the store keeps it.", "$ref": "common.json#/$defs/hash" },
+        "name": { "description": "Its name as received: \"eg.dwg\".", "type": "string" },
+        "storey": {
+          "description": "The storey it shows, where it shows one (\"EG\"); a section, an elevation or a site plan shows none.",
+          "type": "string"
+        },
+        "transform": { "$ref": "#/$defs/transform" }
+      },
+      "required": ["hash", "name"],
+      "additionalProperties": true
+    },
+    "transform": {
+      "description": "From a file's coordinates into the frame: scaled to millimetres, turned about its origin, moved. Absent where the file is in the frame's own coordinates.",
+      "type": "object",
+      "properties": {
+        "scale": { "description": "Millimetres per unit of the source: 1000 for a drawing in metres.", "type": "number", "exclusiveMinimum": 0 },
+        "rotation": { "description": "Degrees counter-clockwise.", "type": "number", "default": 0 },
+        "offset": {
+          "description": "Then moved by, mm.",
+          "type": "array",
+          "prefixItems": [{ "type": "number" }, { "type": "number" }],
+          "items": false,
+          "minItems": 2,
+          "default": [0, 0]
+        },
+        "height": { "description": "Its heights moved by, mm.", "type": "number", "default": 0 },
+        "proposed": { "description": "Found automatically and not yet confirmed.", "type": "boolean", "default": false }
+      },
+      "required": ["scale"],
+      "additionalProperties": true
+    }
+  }
+}

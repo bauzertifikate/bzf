@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/revision.json",
+  "title": "bzf revision",
+  "description": "A revision: one state of the whole project and who made it, an object in `.bauzertifikate/objects/` named by the SHA-256 of its canonical JSON (RFC 8785), so it is never rewritten. Its tree names every document by path and object; its parents are the revisions it follows (one for a change, two for a merge, none for the first). Every store format has `format`; this schema describes the rest for bzf/1.x, and a revision of a newer major format makes a reader open the project read-only. The writer's own files beside the objects, its head and the device's record, and the tombstone of a purged object are described under $defs.",
+  "x-bzf-status": "stable",
+  "type": "object",
+  "properties": {
+    "format": { "description": "The store format it was written in: \"bzf/1\".", "type": "string", "pattern": "^bzf/" }
+  },
+  "required": ["format"],
+  "additionalProperties": true,
+  "if": { "properties": { "format": { "pattern": "^bzf/1(\\.[0-9]+)?$" } } },
+  "then": {
+    "properties": {
+      "tree": {
+        "description": "The project's documents: path → the hash of the document's canonical JSON. A writer of bzf/1 names documents by lower-case ASCII letters, digits, `-`, `_` and `.` in parts separated by `/`, ending in `.json`, no part starting with a dot (\"buildings/0193….json\", \"aufmass/import.json\"); a reader keeps any other path it finds and doesn't write it out. Each document is also written under `Daten/` by its path.",
+        "type": "object",
+        "additionalProperties": { "$ref": "common.json#/$defs/hash" }
+      },
+      "parents": {
+        "description": "The revisions it follows: one for a change, two for a merge, none for the first.",
+        "type": "array",
+        "items": { "$ref": "common.json#/$defs/hash" }
+      },
+      "device": { "description": "The device that wrote it: an opaque id, never a name or an e-mail address.", "type": "string" },
+      "app": { "description": "The app that wrote it: \"Aufmaß\", \"Energieberatung\".", "type": "string" },
+      "appVersion": { "type": "string" },
+      "kernelVersion": { "description": "The version of the calculation kernel the app ran.", "type": "string" },
+      "account": { "description": "The account it was written for, where there is one: an opaque id.", "type": "string" },
+      "organisation": { "description": "The organisation it was written for, where there is one: an opaque id.", "type": "string" },
+      "time": { "description": "When it was written.", "$ref": "common.json#/$defs/time" },
+      "message": { "description": "What was done: \"Planstand 2 eingelesen\".", "type": "string" }
+    },
+    "required": ["tree"]
+  },
+  "$defs": {
+    "head": {
+      "description": "A writer's head, `.bauzertifikate/heads/<device>.<app>.json`: the revision it is at, and the results it wrote. Each writer (an app on a device) moves only its own head, so no file is written by two writers. A plain file, not an object.",
+      "type": "object",
+      "properties": {
+        "device": { "type": "string" },
+        "app": { "type": "string" },
+        "revision": {
+          "description": "The revision it is at; null before its first.",
+          "anyOf": [{ "$ref": "common.json#/$defs/hash" }, { "type": "null" }]
+        },
+        "time": { "description": "When it was last moved.", "anyOf": [{ "$ref": "common.json#/$defs/time" }, { "const": "" }] },
+        "results": {
+          "description": "The results it wrote under `Ergebnisse/`, by their path there (\"Aufmass/mengen.xlsx\"): what each was made from, so a reader can tell when one has gone stale.",
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/result" }
+        }
+      },
+      "required": ["device", "app"],
+      "additionalProperties": true
+    },
+    "result": {
+      "description": "A result as its writer's head records it.",
+      "type": "object",
+      "properties": {
+        "sha256": { "description": "The hash of the result's bytes, by which it is recognised.", "$ref": "common.json#/$defs/hash" },
+        "revision": {
+          "description": "The revision it was made from.",
+          "anyOf": [{ "$ref": "common.json#/$defs/hash" }, { "type": "null" }]
+        },
+        "time": { "description": "When it was written.", "$ref": "common.json#/$defs/time" }
+      },
+      "required": ["sha256", "revision"],
+      "additionalProperties": true
+    },
+    "purged": {
+      "description": "Draft until spec 1.0. A tombstone, `.bauzertifikate/purged/<hash>.json`: the object of that hash was removed from the store on purpose (a GDPR erasure, a wrong building's plans) and its file deleted, while the revisions that name it stay as they were. A reader that misses an object looks here first: a purged object is shown as removed (\"entfernt\"), never waited for as one a sync has not brought yet, and a merge treats the document as removed. Every writer that syncs the folder deletes its own copy of the object once it sees the tombstone.",
+      "type": "object",
+      "properties": {
+        "hash": { "description": "The object removed.", "$ref": "common.json#/$defs/hash" },
+        "time": { "$ref": "common.json#/$defs/time" },
+        "reason": { "description": "Why, as people read it: \"Löschung auf Wunsch der Eigentümerin\", \"Pläne eines anderen Gebäudes\".", "type": "string" },
+        "device": { "type": "string" },
+        "app": { "type": "string" },
+        "account": { "type": "string" }
+      },
+      "required": ["hash", "time"],
+      "additionalProperties": true
+    },
+    "device": {
+      "description": "A device's record, `.bauzertifikate/devices/<device>.json`: where it last saw the project, so that opening a copied folder can ask whether it is a copy or was moved. A plain file of that device's alone.",
+      "type": "object",
+      "properties": {
+        "device": { "type": "string" },
+        "project": { "description": "The project's id as the device saw it.", "type": "string" },
+        "path": { "description": "The folder's path on that device.", "type": "string" },
+        "seen": { "description": "When.", "$ref": "common.json#/$defs/time" }
+      },
+      "required": ["device", "project", "path"],
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/roadmap.json",
+  "title": "bzf renovation roadmap",
+  "description": "A renovation roadmap for one building, `roadmaps/<id>.json`: the steps of a staged renovation in their order, each step's measures and what each measure changes in the building, the target and the assumptions the figures rest on. It is the content of a renovation passport (EPBD Art. 12 and Annex VIII), which in Germany is the individueller Sanierungsfahrplan (iSFP). The state after each step is the building with the changes of every step up to it applied in order; its figures (energy, GHG emissions, class, savings, bill savings) are derived by the method that issues the roadmap and are frozen in the issued document (versand.json, type `renovationRoadmap`), never stored here. Costs and funding amounts are commercial and lie apart (costs.json). This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
+  "x-bzf-status": "draft",
+  "x-bzf-class": "building",
+  "type": "object",
+  "properties": {
+    "schema": { "$ref": "common.json#/$defs/schemaVersion" }
+  },
+  "required": ["schema"],
+  "additionalProperties": true,
+  "if": { "properties": { "schema": { "pattern": "^1\\." } } },
+  "then": { "$ref": "#/$defs/roadmap" },
+  "$defs": {
+    "roadmap": {
+      "type": "object",
+      "properties": {
+        "schema": { "$ref": "common.json#/$defs/schemaVersion" },
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "$ref": "common.json#/$defs/label" },
+        "building": { "description": "The building it is for.", "$ref": "common.json#/$defs/id" },
+        "scheme": {
+          "description": "The scheme it follows: `de:isfp` (Germany's individueller Sanierungsfahrplan), `eu-renovation-passport` (Annex VIII directly), `epc-recommendations` (the recommendations an energy performance certificate gives, EPBD Art. 19(5) to (7): each a step of its own, its savings in the certificate's figures).",
+          "anyOf": [{ "enum": ["de:isfp", "eu-renovation-passport", "epc-recommendations"] }, { "type": "string" }]
+        },
+        "visit": { "description": "The on-site visit it rests on (EPBD Art. 12(3)).", "$ref": "common.json#/$defs/date" },
+        "target": { "$ref": "#/$defs/target" },
+        "heatNetwork": {
+          "description": "Whether a heat network serves or will serve the building, as the municipal heat planning (Wärmeplanung) says (EPBD Annex VIII: district-heating potential).",
+          "type": "object",
+          "properties": {
+            "status": {
+              "anyOf": [{ "enum": ["connected", "available", "planned", "none", "unknown"] }, { "$ref": "common.json#/$defs/newerValue" }]
+            },
+            "year": { "description": "When it is expected, where planned.", "$ref": "common.json#/$defs/year" },
+            "note": { "type": "string" },
+            "source": { "$ref": "common.json#/$defs/source" }
+          },
+          "additionalProperties": true
+        },
+        "assumptions": { "$ref": "#/$defs/assumptions" },
+        "steps": { "description": "In their order: done steps first, as the building's renovation history, then the planned ones.", "type": "array", "items": { "$ref": "#/$defs/step" } },
+        "note": { "type": "string" }
+      },
+      "required": ["schema", "id", "building", "steps"],
+      "additionalProperties": true
+    },
+    "target": {
+      "description": "Where the roadmap leads: an energy performance class, a standard (a zero-emission building, an Effizienzhaus level), in words.",
+      "type": "object",
+      "properties": {
+        "class": { "description": "The energy performance class reached after the last step, as the issuing scheme names it: \"A\", \"A+\".", "type": "string" },
+        "standard": {
+          "description": "The standard reached: `zeb` (zero-emission building, EPBD Art. 11), `nzeb`, or a national one with its country (`de:effizienzhaus-55`, `de:effizienzhaus-70`, `de:effizienzhaus-85`, `de:effizienzhaus-denkmal`).",
+          "type": "string"
+        },
+        "year": { "description": "By when.", "$ref": "common.json#/$defs/year" },
+        "label": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "assumptions": {
+      "description": "What the figures rest on beyond the building: energy prices and their increase (EPBD Annex VIII: bill savings with the price assumptions), and the calculation's basis.",
+      "type": "object",
+      "properties": {
+        "prices": {
+          "description": "Energy prices per carrier at the roadmap's date, gross.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "carrier": { "$ref": "common.json#/$defs/carrier" },
+              "perKWh": { "description": "Price per kWh of final energy.", "$ref": "common.json#/$defs/money" },
+              "perYear": { "description": "Fixed price per year (Grundpreis).", "$ref": "common.json#/$defs/money" }
+            },
+            "required": ["carrier", "perKWh"],
+            "additionalProperties": true
+          }
+        },
+        "increase": { "description": "Assumed price increase per year, as a fraction.", "type": "number" },
+        "co2Price": { "description": "Assumed CO₂ price per tonne, where it enters the prices.", "$ref": "common.json#/$defs/money" },
+        "method": { "description": "The calculation the figures come from: \"DIN V 18599:2018-09\" for the iSFP, \"DIN/TS 18599:2025-10\".", "type": "string" },
+        "priceSource": { "description": "Where the prices come from: a published price statistic, the owner's bills.", "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "step": {
+      "description": "A step of the roadmap: measures done together, when, and why in this order.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "description": "\"Maßnahmenpaket 1\", \"Dach und oberste Geschossdecke\".", "type": "string" },
+        "year": { "description": "When it is planned, or when it was done; the first year where it is planned for a range.", "$ref": "common.json#/$defs/year" },
+        "until": { "description": "The last year of the range it is planned for.", "$ref": "common.json#/$defs/year" },
+        "trigger": { "description": "The occasion it waits for instead of a year: \"wenn der Kessel ausgetauscht werden muss\".", "type": "string" },
+        "duration": { "description": "How long it takes to carry out, weeks of seven days (EPBD Annex VIII 2(b)(v)).", "type": "number", "minimum": 0 },
+        "status": {
+          "description": "Planned, done (a past renovation, EPBD Annex VIII: past major renovations), or declined by the owner.",
+          "anyOf": [{ "enum": ["planned", "done", "declined"] }, { "$ref": "common.json#/$defs/newerValue" }],
+          "default": "planned"
+        },
+        "rationale": { "description": "Why it comes at this point in the order (EPBD Annex VIII).", "type": "string" },
+        "measures": { "type": "array", "items": { "$ref": "#/$defs/measure" } }
+      },
+      "required": ["id", "measures"],
+      "additionalProperties": true
+    },
+    "measure": {
+      "description": "A measure: what is done to which part of the building, as changes to the building document.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "description": "\"Außenwand mit 16 cm WDVS dämmen\".", "type": "string" },
+        "components": {
+          "description": "The component groups it concerns, as a roadmap rates and groups them: roof, top ceiling, external walls, windows, doors, floor or cellar ceiling, heating (generation), hot water, distribution (storage, distribution and emission), ventilation, cooling, lighting, on-site generation, storage, automation. The iSFP rates eight: walls, roof or top ceiling, windows and doors, floor, heating, hot water, distribution, ventilation.",
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "enum": [
+                  "roof",
+                  "topCeiling",
+                  "externalWalls",
+                  "windows",
+                  "doors",
+                  "floor",
+                  "heating",
+                  "hotWater",
+                  "distribution",
+                  "ventilation",
+                  "cooling",
+                  "lighting",
+                  "generation",
+                  "storage",
+                  "automation",
+                  "other"
+                ]
+              },
+              { "$ref": "common.json#/$defs/newerValue" }
+            ]
+          }
+        },
+        "affects": { "description": "The items it concerns: walls, openings, roof plates, systems.", "type": "array", "items": { "$ref": "common.json#/$defs/id" } },
+        "changes": { "description": "What it changes in the building document, applied in order.", "type": "array", "items": { "$ref": "#/$defs/change" } },
+        "description": { "description": "What is done, technically, as the owner and the trade read it.", "type": "string" },
+        "options": { "description": "Technology and material options for it (EPBD Annex VIII).", "type": "array", "items": { "type": "string" } },
+        "targets": {
+          "description": "The values the measure promises, as the roadmap states them, so that what is carried out can be checked against it later (the BEG's check that a measure is the iSFP's): a U-value, an insulation's thickness and conductivity, a heat pump's seasonal performance, a PV array's peak power.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "quantity": {
+                "description": "What is promised: `uValue` (W/(m²·K)), `thickness` (m), `lambda` (W/(m·K)), `efficiency`, `scop` (a heat pump's Jahresarbeitszahl too), `solarFraction`, `heatRecovery` (fractions), `collectorArea` (m²), `peakPower` (kWp), `storage` (l or kWh), `output` (kW). Any other is kept.",
+                "type": "string",
+                "minLength": 1
+              },
+              "value": { "type": "number" },
+              "unit": { "type": "string" },
+              "of": { "description": "The item it is promised for, where it isn't all the measure affects.", "$ref": "common.json#/$defs/id" },
+              "limit": {
+                "description": "Whether the value is a maximum (a U-value), a minimum (a performance) or exact.",
+                "anyOf": [{ "enum": ["max", "min", "exact"] }, { "$ref": "common.json#/$defs/newerValue" }]
+              }
+            },
+            "required": ["quantity", "value"],
+            "additionalProperties": true
+          }
+        },
+        "requirements": { "description": "What it requires to be done right: a hydraulic balancing, an airtightness concept, a minimum U-value for funding.", "type": "array", "items": { "type": "string" } },
+        "trades": { "description": "The trades it needs: \"Dachdecker\", \"Heizungsbauer\".", "type": "array", "items": { "type": "string" } },
+        "advantages": { "description": "What speaks for it (EPBD Annex VIII 2(b)(i)).", "type": "array", "items": { "type": "string" } },
+        "disadvantages": { "description": "What speaks against it (EPBD Annex VIII 2(b)(i)).", "type": "array", "items": { "type": "string" } },
+        "funding": {
+          "description": "The funding programmes it may get, by name and link (EPBD Annex VIII: funding sources). The amounts are commercial (costs.json).",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "programme": { "description": "\"BEG EM\", \"KfW 261\".", "type": "string" },
+              "url": { "type": "string" }
+            },
+            "required": ["programme"],
+            "additionalProperties": true
+          }
+        },
+        "lifetime": { "description": "Expected service life, years.", "type": "integer", "minimum": 0 }
+      },
+      "required": ["id"],
+      "additionalProperties": true
+    },
+    "change": {
+      "description": "One change to the building document: a field of an item set (a wall's construction, a system's phase), an item added to a list (a new construction, a new heat pump), or an item removed. Items are found by id anywhere in the building; a field holds what that item's schema allows.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "op": { "const": "set" },
+            "target": { "$ref": "common.json#/$defs/id" },
+            "field": { "description": "The field, as the item's schema names it: \"construction\", \"phase\".", "type": "string", "minLength": 1 },
+            "value": { "description": "Its new value." }
+          },
+          "required": ["op", "target", "field", "value"],
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": { "const": "add" },
+            "into": { "description": "The item whose list it goes into: the building, a part, a storey.", "$ref": "common.json#/$defs/id" },
+            "list": { "description": "The list: \"constructions\", \"systems\", \"openings\", \"walls\".", "type": "string", "minLength": 1 },
+            "item": { "description": "The item, with an id of its own.", "type": "object", "required": ["id"] }
+          },
+          "required": ["op", "into", "list", "item"],
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": { "const": "remove" },
+            "target": { "$ref": "common.json#/$defs/id" }
+          },
+          "required": ["op", "target"],
+          "additionalProperties": true
+        },
+        {
+          "description": "A newer kind of change, kept as it came; a reader that doesn't know it shows the step's state after it as unknown.",
+          "type": "object",
+          "properties": { "op": { "not": { "enum": ["set", "add", "remove"] } } },
+          "required": ["op"],
+          "additionalProperties": true
+        }
+      ]
+    }
+  }
+}

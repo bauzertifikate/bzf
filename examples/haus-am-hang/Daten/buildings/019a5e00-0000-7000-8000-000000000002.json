@@ -1,0 +1,541 @@
+{
+  "schema": "1.1",
+  "id": "019a5e00-0000-7000-8000-000000000002",
+  "label": "Haus am Hang",
+  "identifiers": [
+    {
+      "scheme": "de:alkis",
+      "value": "DEBWL0000example",
+      "note": "made up"
+    }
+  ],
+  "address": {
+    "street": "Am Hang",
+    "number": "7",
+    "postcode": "88212",
+    "city": "Musterstadt",
+    "country": "DE"
+  },
+  "year": 1968,
+  "use": "residential",
+  "category": "singleFamily",
+  "dwellings": 1,
+  "parts": [
+    {
+      "id": "019a5e00-0000-7000-8000-000000000003",
+      "storeys": [
+        {
+          "id": "019a5e00-0000-7000-8000-000000000004",
+          "label": "EG",
+          "level": 0,
+          "height": 2750,
+          "walls": [
+            {
+              "id": "019a5e00-0000-7000-8000-00000000000b",
+              "label": "EG-S",
+              "line": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  10000,
+                  0
+                ]
+              ],
+              "construction": "019a5e00-0000-7000-8000-000000000006",
+              "exterior": true,
+              "year": 1968,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e00-0000-7000-8000-00000000000c",
+              "label": "EG-O",
+              "line": [
+                [
+                  10000,
+                  0
+                ],
+                [
+                  10000,
+                  8000
+                ]
+              ],
+              "construction": "019a5e00-0000-7000-8000-000000000006",
+              "exterior": true,
+              "year": 1968,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e00-0000-7000-8000-00000000000d",
+              "label": "EG-N",
+              "line": [
+                [
+                  10000,
+                  8000
+                ],
+                [
+                  0,
+                  8000
+                ]
+              ],
+              "construction": "019a5e00-0000-7000-8000-000000000006",
+              "exterior": true,
+              "year": 1968,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e00-0000-7000-8000-00000000000e",
+              "label": "EG-W",
+              "line": [
+                [
+                  0,
+                  8000
+                ],
+                [
+                  0,
+                  0
+                ]
+              ],
+              "construction": "019a5e00-0000-7000-8000-000000000006",
+              "exterior": true,
+              "year": 1968,
+              "phase": "existing"
+            }
+          ],
+          "openings": [
+            {
+              "id": "019a5e00-0000-7000-8000-000000000016",
+              "label": "Wohnen Süd",
+              "host": "019a5e00-0000-7000-8000-00000000000b",
+              "offset": 2000,
+              "sill": 900,
+              "width": 2010,
+              "height": 1385,
+              "uValue": 2.7,
+              "gValue": 0.75,
+              "glazing": "insulatingDouble",
+              "frame": "plastic",
+              "shading": "rollerShutter",
+              "year": 1985,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e00-0000-7000-8000-000000000017",
+              "label": "Küche Ost",
+              "host": "019a5e00-0000-7000-8000-00000000000c",
+              "offset": 3000,
+              "sill": 1000,
+              "width": 1135,
+              "height": 1260,
+              "uValue": 2.7,
+              "gValue": 0.75,
+              "glazing": "insulatingDouble",
+              "frame": "plastic",
+              "shading": "rollerShutter",
+              "year": 1985,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e00-0000-7000-8000-000000000018",
+              "label": "Haustür",
+              "kind": "door",
+              "host": "019a5e00-0000-7000-8000-00000000000d",
+              "offset": 4500,
+              "sill": 0,
+              "width": 1010,
+              "height": 2135,
+              "uValue": 3.0,
+              "year": 1968,
+              "phase": "existing"
+            }
+          ],
+          "source": {
+            "kind": "lod2",
+            "planState": "019a5e00-0000-7000-8000-00000000001f",
+            "file": "4f48f7207cebf92638debb5694e4a8677350cf88a9e98e73c6c466b6b1d43890"
+          }
+        },
+        {
+          "id": "019a5e00-0000-7000-8000-000000000005",
+          "label": "OG",
+          "level": 2750,
+          "height": 2750,
+          "walls": [
+            {
+              "id": "019a5e00-0000-7000-8000-00000000000f",
+              "label": "OG-S",
+              "line": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  10000,
+                  0
+                ]
+              ],
+              "construction": "019a5e00-0000-7000-8000-000000000006",
+              "exterior": true,
+              "year": 1968,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e00-0000-7000-8000-000000000010",
+              "label": "OG-O",
+              "line": [
+                [
+                  10000,
+                  0
+                ],
+                [
+                  10000,
+                  8000
+                ]
+              ],
+              "construction": "019a5e00-0000-7000-8000-000000000006",
+              "exterior": true,
+              "year": 1968,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e00-0000-7000-8000-000000000011",
+              "label": "OG-N",
+              "line": [
+                [
+                  10000,
+                  8000
+                ],
+                [
+                  0,
+                  8000
+                ]
+              ],
+              "construction": "019a5e00-0000-7000-8000-000000000006",
+              "exterior": true,
+              "year": 1968,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e00-0000-7000-8000-000000000012",
+              "label": "OG-W",
+              "line": [
+                [
+                  0,
+                  8000
+                ],
+                [
+                  0,
+                  0
+                ]
+              ],
+              "construction": "019a5e00-0000-7000-8000-000000000006",
+              "exterior": true,
+              "year": 1968,
+              "phase": "existing"
+            }
+          ],
+          "slabs": [
+            {
+              "id": "019a5e00-0000-7000-8000-000000000013",
+              "label": "Oberste Geschossdecke",
+              "outline": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  10000,
+                  0
+                ],
+                [
+                  10000,
+                  8000
+                ],
+                [
+                  0,
+                  8000
+                ]
+              ],
+              "top": 5500,
+              "construction": "019a5e00-0000-7000-8000-000000000008",
+              "year": 1968,
+              "phase": "existing"
+            }
+          ],
+          "openings": [
+            {
+              "id": "019a5e00-0000-7000-8000-000000000019",
+              "label": "Schlafen Süd",
+              "host": "019a5e00-0000-7000-8000-00000000000f",
+              "offset": 2000,
+              "sill": 900,
+              "width": 1510,
+              "height": 1385,
+              "uValue": 2.7,
+              "gValue": 0.75,
+              "glazing": "insulatingDouble",
+              "frame": "plastic",
+              "shading": "rollerShutter",
+              "year": 1985,
+              "phase": "existing"
+            }
+          ]
+        }
+      ],
+      "roofs": [
+        {
+          "id": "019a5e00-0000-7000-8000-000000000014",
+          "label": "Dach Süd",
+          "plate": {
+            "plane": {
+              "points": [
+                [
+                  0,
+                  0,
+                  5500
+                ],
+                [
+                  10000,
+                  0,
+                  5500
+                ],
+                [
+                  0,
+                  4000,
+                  8200
+                ]
+              ]
+            },
+            "outline": [
+              [
+                0,
+                0
+              ],
+              [
+                10000,
+                0
+              ],
+              [
+                10000,
+                4826
+              ],
+              [
+                0,
+                4826
+              ]
+            ],
+            "thickness": 160
+          },
+          "construction": "019a5e00-0000-7000-8000-00000000000a",
+          "year": 1968,
+          "phase": "existing"
+        },
+        {
+          "id": "019a5e00-0000-7000-8000-000000000015",
+          "label": "Dach Nord",
+          "plate": {
+            "plane": {
+              "points": [
+                [
+                  10000,
+                  8000,
+                  5500
+                ],
+                [
+                  0,
+                  8000,
+                  5500
+                ],
+                [
+                  10000,
+                  4000,
+                  8200
+                ]
+              ]
+            },
+            "outline": [
+              [
+                0,
+                0
+              ],
+              [
+                10000,
+                0
+              ],
+              [
+                10000,
+                4826
+              ],
+              [
+                0,
+                4826
+              ]
+            ],
+            "thickness": 160
+          },
+          "construction": "019a5e00-0000-7000-8000-00000000000a",
+          "year": 1968,
+          "phase": "existing"
+        }
+      ],
+      "roof": {
+        "kind": "gable",
+        "rect": {
+          "x": [
+            0,
+            10000
+          ],
+          "y": [
+            0,
+            8000
+          ]
+        },
+        "ridge": "x",
+        "eaves": 5500,
+        "top": 8200
+      }
+    }
+  ],
+  "constructions": [
+    {
+      "id": "019a5e00-0000-7000-8000-000000000006",
+      "name": "Außenwand Bestand",
+      "layers": [
+        {
+          "material": {
+            "name": "Kalkzementputz",
+            "lambda": 1.0,
+            "density": 1800
+          },
+          "thickness": 0.02
+        },
+        {
+          "material": {
+            "name": "Hochlochziegel",
+            "lambda": 0.5,
+            "density": 1200
+          },
+          "thickness": 0.3
+        },
+        {
+          "material": {
+            "name": "Kalkgipsputz",
+            "lambda": 0.7,
+            "density": 1400
+          },
+          "thickness": 0.015
+        }
+      ]
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-000000000008",
+      "name": "Oberste Geschossdecke Bestand",
+      "layers": [
+        {
+          "material": {
+            "name": "Stahlbeton",
+            "lambda": 2.3,
+            "density": 2400
+          },
+          "thickness": 0.16
+        }
+      ]
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000000a",
+      "name": "Dach ungedämmt",
+      "layers": [
+        {
+          "material": {
+            "name": "Dachziegel und Lattung"
+          },
+          "thickness": 0.04
+        }
+      ]
+    }
+  ],
+  "airtightness": {
+    "n50": 6.0,
+    "measured": "2026-10-14"
+  },
+  "systems": [
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001a",
+      "label": "Gas-Niedertemperaturkessel",
+      "kind": "boiler",
+      "type": "lowTemperature",
+      "services": [
+        "heating",
+        "hotWater"
+      ],
+      "carrier": "naturalGas",
+      "year": 1994,
+      "output": 24,
+      "endOfLife": 2028,
+      "location": "019a5e00-0000-7000-8000-000000000004",
+      "feeds": [
+        "019a5e00-0000-7000-8000-00000000001b",
+        "019a5e00-0000-7000-8000-00000000001c"
+      ],
+      "product": {
+        "maker": "Beispiel",
+        "name": "NT 24"
+      },
+      "phase": "existing",
+      "source": {
+        "kind": "drawn",
+        "note": "Typenschild fotografiert",
+        "file": "a08b6abb317ee796b2536ccb29d4d7c7f1297c5142c15e6a4f86e87579199189"
+      }
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001b",
+      "label": "Warmwasserspeicher",
+      "kind": "thermalStorage",
+      "type": "hotWater",
+      "services": [
+        "hotWater"
+      ],
+      "volume": 160,
+      "year": 1994,
+      "location": "019a5e00-0000-7000-8000-000000000004",
+      "phase": "existing"
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001c",
+      "label": "Heizkreis",
+      "kind": "distribution",
+      "services": [
+        "heating"
+      ],
+      "flowTemperature": 70,
+      "feeds": [
+        "019a5e00-0000-7000-8000-00000000001d"
+      ],
+      "phase": "existing"
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001d",
+      "label": "Heizkörper",
+      "kind": "emitters",
+      "type": "radiators",
+      "services": [
+        "heating"
+      ],
+      "flowTemperature": 70,
+      "serves": [
+        "019a5e00-0000-7000-8000-000000000004",
+        "019a5e00-0000-7000-8000-000000000005"
+      ],
+      "phase": "existing"
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001e",
+      "label": "Gaszähler",
+      "kind": "meter",
+      "type": "naturalGas",
+      "phase": "existing"
+    }
+  ]
+}

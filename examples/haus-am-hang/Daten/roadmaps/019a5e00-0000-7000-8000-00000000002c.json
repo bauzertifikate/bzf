@@ -1,0 +1,422 @@
+{
+  "schema": "1.0",
+  "id": "019a5e00-0000-7000-8000-00000000002c",
+  "label": "Sanierungsfahrplan Haus am Hang",
+  "building": "019a5e00-0000-7000-8000-000000000002",
+  "scheme": "de:isfp",
+  "visit": "2026-10-14",
+  "target": {
+    "standard": "de:effizienzhaus-70",
+    "class": "A",
+    "year": 2031
+  },
+  "assumptions": {
+    "prices": [
+      {
+        "carrier": "naturalGas",
+        "perKWh": {
+          "amount": 0.12
+        },
+        "perYear": {
+          "amount": 180
+        }
+      },
+      {
+        "carrier": "electricity",
+        "perKWh": {
+          "amount": 0.28
+        }
+      }
+    ],
+    "increase": 0.03,
+    "method": "DIN V 18599:2018-09",
+    "priceSource": "Annahme des Beispiels"
+  },
+  "heatNetwork": {
+    "status": "none",
+    "note": "Kein Wärmenetz in der kommunalen Wärmeplanung (Beispiel)"
+  },
+  "steps": [
+    {
+      "id": "019a5e00-0000-7000-8000-000000000020",
+      "label": "Fenster (1985)",
+      "year": 1985,
+      "status": "done",
+      "measures": [
+        {
+          "id": "019a5e00-0000-7000-8000-000000000024",
+          "label": "Fenster mit Isolierverglasung",
+          "components": [
+            "windows"
+          ],
+          "affects": [
+            "019a5e00-0000-7000-8000-000000000016",
+            "019a5e00-0000-7000-8000-000000000017",
+            "019a5e00-0000-7000-8000-000000000019"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-000000000021",
+      "label": "Maßnahmenpaket 1: Oberste Geschossdecke und Abgleich",
+      "year": 2027,
+      "rationale": "Günstig und ohne Gerüst; senkt die Heizlast vor dem Kesseltausch.",
+      "measures": [
+        {
+          "id": "019a5e00-0000-7000-8000-000000000025",
+          "label": "Oberste Geschossdecke mit 24 cm dämmen",
+          "components": [
+            "topCeiling"
+          ],
+          "affects": [
+            "019a5e00-0000-7000-8000-000000000013"
+          ],
+          "changes": [
+            {
+              "op": "add",
+              "into": "019a5e00-0000-7000-8000-000000000002",
+              "list": "constructions",
+              "item": {
+                "id": "019a5e00-0000-7000-8000-000000000009",
+                "name": "Oberste Geschossdecke gedämmt",
+                "layers": [
+                  {
+                    "material": {
+                      "name": "Mineralwolle WLS 035",
+                      "lambda": 0.035
+                    },
+                    "thickness": 0.24
+                  },
+                  {
+                    "material": {
+                      "name": "Stahlbeton",
+                      "lambda": 2.3,
+                      "density": 2400
+                    },
+                    "thickness": 0.16
+                  }
+                ]
+              }
+            },
+            {
+              "op": "set",
+              "target": "019a5e00-0000-7000-8000-000000000013",
+              "field": "construction",
+              "value": "019a5e00-0000-7000-8000-000000000009"
+            }
+          ],
+          "targets": [
+            {
+              "quantity": "uValue",
+              "value": 0.14,
+              "unit": "W/(m²·K)",
+              "limit": "max"
+            },
+            {
+              "quantity": "thickness",
+              "value": 0.24,
+              "unit": "m"
+            },
+            {
+              "quantity": "lambda",
+              "value": 0.035,
+              "unit": "W/(m·K)",
+              "limit": "max"
+            }
+          ],
+          "options": [
+            "Mineralwolle",
+            "Holzfaser",
+            "Zellulose eingeblasen"
+          ],
+          "trades": [
+            "Zimmerer"
+          ],
+          "funding": [
+            {
+              "programme": "BEG EM"
+            }
+          ],
+          "lifetime": 40
+        },
+        {
+          "id": "019a5e00-0000-7000-8000-000000000026",
+          "label": "Hydraulischer Abgleich",
+          "components": [
+            "heating"
+          ],
+          "affects": [
+            "019a5e00-0000-7000-8000-00000000001c"
+          ],
+          "trades": [
+            "Heizungsbauer"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-000000000022",
+      "label": "Maßnahmenpaket 2: Außenwand",
+      "year": 2029,
+      "rationale": "Mit dem fälligen Neuanstrich der Fassade; danach reicht eine kleine Wärmepumpe.",
+      "measures": [
+        {
+          "id": "019a5e00-0000-7000-8000-000000000027",
+          "label": "Außenwand mit 16 cm WDVS dämmen",
+          "components": [
+            "externalWalls"
+          ],
+          "affects": [
+            "019a5e00-0000-7000-8000-00000000000b",
+            "019a5e00-0000-7000-8000-00000000000c",
+            "019a5e00-0000-7000-8000-00000000000d",
+            "019a5e00-0000-7000-8000-00000000000e",
+            "019a5e00-0000-7000-8000-00000000000f",
+            "019a5e00-0000-7000-8000-000000000010",
+            "019a5e00-0000-7000-8000-000000000011",
+            "019a5e00-0000-7000-8000-000000000012"
+          ],
+          "changes": [
+            {
+              "op": "add",
+              "into": "019a5e00-0000-7000-8000-000000000002",
+              "list": "constructions",
+              "item": {
+                "id": "019a5e00-0000-7000-8000-000000000007",
+                "name": "Außenwand mit WDVS",
+                "layers": [
+                  {
+                    "material": {
+                      "name": "Silikatputz",
+                      "lambda": 0.7
+                    },
+                    "thickness": 0.01
+                  },
+                  {
+                    "material": {
+                      "name": "EPS WLS 032",
+                      "lambda": 0.032
+                    },
+                    "thickness": 0.16
+                  },
+                  {
+                    "material": {
+                      "name": "Kalkzementputz",
+                      "lambda": 1.0,
+                      "density": 1800
+                    },
+                    "thickness": 0.02
+                  },
+                  {
+                    "material": {
+                      "name": "Hochlochziegel",
+                      "lambda": 0.5,
+                      "density": 1200
+                    },
+                    "thickness": 0.3
+                  },
+                  {
+                    "material": {
+                      "name": "Kalkgipsputz",
+                      "lambda": 0.7,
+                      "density": 1400
+                    },
+                    "thickness": 0.015
+                  }
+                ]
+              }
+            },
+            {
+              "op": "set",
+              "target": "019a5e00-0000-7000-8000-00000000000b",
+              "field": "construction",
+              "value": "019a5e00-0000-7000-8000-000000000007"
+            },
+            {
+              "op": "set",
+              "target": "019a5e00-0000-7000-8000-00000000000c",
+              "field": "construction",
+              "value": "019a5e00-0000-7000-8000-000000000007"
+            },
+            {
+              "op": "set",
+              "target": "019a5e00-0000-7000-8000-00000000000d",
+              "field": "construction",
+              "value": "019a5e00-0000-7000-8000-000000000007"
+            },
+            {
+              "op": "set",
+              "target": "019a5e00-0000-7000-8000-00000000000e",
+              "field": "construction",
+              "value": "019a5e00-0000-7000-8000-000000000007"
+            },
+            {
+              "op": "set",
+              "target": "019a5e00-0000-7000-8000-00000000000f",
+              "field": "construction",
+              "value": "019a5e00-0000-7000-8000-000000000007"
+            },
+            {
+              "op": "set",
+              "target": "019a5e00-0000-7000-8000-000000000010",
+              "field": "construction",
+              "value": "019a5e00-0000-7000-8000-000000000007"
+            },
+            {
+              "op": "set",
+              "target": "019a5e00-0000-7000-8000-000000000011",
+              "field": "construction",
+              "value": "019a5e00-0000-7000-8000-000000000007"
+            },
+            {
+              "op": "set",
+              "target": "019a5e00-0000-7000-8000-000000000012",
+              "field": "construction",
+              "value": "019a5e00-0000-7000-8000-000000000007"
+            }
+          ],
+          "targets": [
+            {
+              "quantity": "uValue",
+              "value": 0.18,
+              "unit": "W/(m²·K)",
+              "limit": "max"
+            }
+          ],
+          "options": [
+            "EPS",
+            "Mineralwolle",
+            "Holzfaser"
+          ],
+          "trades": [
+            "Stuckateur"
+          ],
+          "funding": [
+            {
+              "programme": "BEG EM"
+            }
+          ],
+          "lifetime": 40
+        }
+      ]
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-000000000023",
+      "label": "Maßnahmenpaket 3: Wärmepumpe und Photovoltaik",
+      "year": 2030,
+      "until": 2032,
+      "trigger": "wenn der Kessel ausgetauscht werden muss",
+      "measures": [
+        {
+          "id": "019a5e00-0000-7000-8000-000000000028",
+          "label": "Luft/Wasser-Wärmepumpe statt Gaskessel",
+          "components": [
+            "heating",
+            "hotWater"
+          ],
+          "affects": [
+            "019a5e00-0000-7000-8000-00000000001a"
+          ],
+          "changes": [
+            {
+              "op": "set",
+              "target": "019a5e00-0000-7000-8000-00000000001a",
+              "field": "phase",
+              "value": "demolished"
+            },
+            {
+              "op": "add",
+              "into": "019a5e00-0000-7000-8000-000000000002",
+              "list": "systems",
+              "item": {
+                "id": "019a5e00-0000-7000-8000-00000000002a",
+                "label": "Luft/Wasser-Wärmepumpe",
+                "kind": "heatPump",
+                "type": "outdoorAir",
+                "services": [
+                  "heating",
+                  "hotWater"
+                ],
+                "carrier": "electricity",
+                "output": 8,
+                "signals": true,
+                "feeds": [
+                  "019a5e00-0000-7000-8000-00000000001b",
+                  "019a5e00-0000-7000-8000-00000000001c"
+                ],
+                "phase": "new"
+              }
+            },
+            {
+              "op": "set",
+              "target": "019a5e00-0000-7000-8000-00000000001c",
+              "field": "flowTemperature",
+              "value": 50
+            }
+          ],
+          "targets": [
+            {
+              "quantity": "scop",
+              "value": 3.5,
+              "limit": "min"
+            }
+          ],
+          "requirements": [
+            "Vorlauftemperatur 50 °C nach Paket 2 geprüft"
+          ],
+          "trades": [
+            "Heizungsbauer",
+            "Elektriker"
+          ],
+          "funding": [
+            {
+              "programme": "BEG EM"
+            }
+          ],
+          "lifetime": 20
+        },
+        {
+          "id": "019a5e00-0000-7000-8000-000000000029",
+          "label": "Photovoltaik 8 kWp auf dem Süddach",
+          "components": [
+            "generation"
+          ],
+          "affects": [
+            "019a5e00-0000-7000-8000-000000000014"
+          ],
+          "changes": [
+            {
+              "op": "add",
+              "into": "019a5e00-0000-7000-8000-000000000002",
+              "list": "systems",
+              "item": {
+                "id": "019a5e00-0000-7000-8000-00000000002b",
+                "label": "PV Süd",
+                "kind": "photovoltaic",
+                "peakPower": 8,
+                "on": "019a5e00-0000-7000-8000-000000000014",
+                "feeds": [
+                  "019a5e00-0000-7000-8000-00000000002a"
+                ],
+                "phase": "new"
+              }
+            }
+          ],
+          "targets": [
+            {
+              "quantity": "peakPower",
+              "value": 8,
+              "unit": "kWp",
+              "limit": "min"
+            }
+          ],
+          "trades": [
+            "Elektriker"
+          ],
+          "lifetime": 25
+        }
+      ]
+    }
+  ]
+}

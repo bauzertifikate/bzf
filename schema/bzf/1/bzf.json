@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/bzf.json",
+  "title": "bzf project file",
+  "description": "The `<Name>.bzf` that opens a project: a one-line JSON object at the top of the project folder, whose file name is the project's name. Written when the project is created and again only when a copy becomes a project of its own. Every store format has `format` and `project`; this schema describes the rest for the store format bzf/1.x. A reader opens a project of a newer major format read-only, never refuses it and never rewrites it.",
+  "x-bzf-status": "stable",
+  "type": "object",
+  "properties": {
+    "format": {
+      "description": "The store format: \"bzf/\" and the format's version, \"bzf/1\". A higher minor version only adds what a reader keeps without knowing it.",
+      "type": "string",
+      "pattern": "^bzf/"
+    },
+    "project": { "description": "The project's id: random at creation, kept when the folder is moved, new when it is copied.", "type": "string", "minLength": 1 }
+  },
+  "required": ["format", "project"],
+  "additionalProperties": true,
+  "if": { "properties": { "format": { "pattern": "^bzf/1(\\.[0-9]+)?$" } } },
+  "then": {
+    "properties": {
+      "project": { "$ref": "common.json#/$defs/id" },
+      "created": { "description": "When it was created.", "$ref": "common.json#/$defs/time" },
+      "copiedFrom": { "description": "The id of the project this one was copied from.", "$ref": "common.json#/$defs/id" }
+    },
+    "required": ["created"]
+  }
+}

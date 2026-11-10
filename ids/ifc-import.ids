@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- IFC import information requirements. IDS 1.0 (buildingSMART). CC0 1.0; see LICENSES/. -->
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>bzf: a building read from IFC</title>
+    <copyright>CC0 1.0, Bauzertifikate UG (haftungsbeschränkt)</copyright>
+    <version>0.1</version>
+    <description>What a building model needs for bauzertifikate Aufmaß and Energieberatung to read its storeys, walls
+      with their layers, slabs, roofs, windows, doors and rooms into a plan state. The reader takes IFC2X3 and IFC4;
+      extrusions exactly, other solids through their planar faces. Walls exported one per layer, or as parts of a wall,
+      are joined into one wall with its layers. What is required here the reader cannot work without or would have to
+      guess; what is optional it reads where it is there.</description>
+    <date>2026-11-07</date>
+    <purpose>Hand-over of an architect's or carpenter's model to the Energieberater and the trades</purpose>
+    <milestone>Bauantrag, Ausführungsplanung, Bestandsaufnahme</milestone>
+  </info>
+  <specifications>
+    <specification name="Storeys" ifcVersion="IFC2X3 IFC4"
+                   description="A building of storeys, each with its name and elevation."
+                   instructions="Every element the reader takes is contained in a storey; the storey's elevation is the top of its structural slab, from the building's ±0,00.">
+      <applicability minOccurs="1" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <attribute cardinality="required"><name><simpleValue>Name</simpleValue></name></attribute>
+        <attribute cardinality="required"><name><simpleValue>Elevation</simpleValue></name></attribute>
+        <partOf relation="IFCRELAGGREGATES" cardinality="required">
+          <entity><name><simpleValue>IFCBUILDING</simpleValue></name></entity>
+        </partOf>
+      </requirements>
+    </specification>
+    <specification name="Walls" ifcVersion="IFC2X3 IFC4"
+                   description="Each wall in its storey, with its layers and whether it faces outdoors."
+                   instructions="One wall per straight run, its layers as a material layer set usage (or one wall per layer, or the wall's parts, each with its material). A wall's axis representation is its reference line.">
+      <applicability minOccurs="1" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="IFCWALL"/>
+              <xs:enumeration value="IFCWALLSTANDARDCASE"/>
+            </xs:restriction>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE" cardinality="required">
+          <entity><name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name></entity>
+        </partOf>
+        <material cardinality="required"/>
+        <property dataType="IFCBOOLEAN" cardinality="required">
+          <propertySet><simpleValue>Pset_WallCommon</simpleValue></propertySet>
+          <baseName><simpleValue>IsExternal</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Windows and doors" ifcVersion="IFC2X3 IFC4"
+                   description="Each window and door fills an opening in its wall, with its overall size."
+                   instructions="The opening voids the wall (IfcRelVoidsElement) and the window or door fills it (IfcRelFillsElement); one opening voids every layer of a wall modelled one per layer.">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="IFCWINDOW"/>
+              <xs:enumeration value="IFCDOOR"/>
+            </xs:restriction>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELVOIDSELEMENT IFCRELFILLSELEMENT" cardinality="required">
+          <entity>
+            <name>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="IFCWALL"/>
+                <xs:enumeration value="IFCWALLSTANDARDCASE"/>
+              </xs:restriction>
+            </name>
+          </entity>
+        </partOf>
+        <attribute cardinality="required"><name><simpleValue>OverallWidth</simpleValue></name></attribute>
+        <attribute cardinality="required"><name><simpleValue>OverallHeight</simpleValue></name></attribute>
+      </requirements>
+    </specification>
+    <specification name="Slabs" ifcVersion="IFC2X3 IFC4"
+                   description="Each slab in its storey with its material; a roof's slabs part of the roof."
+                   instructions="A slab's body extruded from its outline (or planar faces); a roof's planes as slabs of type ROOF aggregated by an IfcRoof, each a plate of constant thickness.">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name><simpleValue>IFCSLAB</simpleValue></name>
+          <predefinedType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="FLOOR"/>
+              <xs:enumeration value="BASESLAB"/>
+            </xs:restriction>
+          </predefinedType>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE" cardinality="required">
+          <entity><name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name></entity>
+        </partOf>
+        <material cardinality="optional"/>
+      </requirements>
+    </specification>
+    <specification name="Roof plates" ifcVersion="IFC2X3 IFC4"
+                   description="A roof's planes as slabs of the roof."
+                   instructions="Each plane a slab of type ROOF, aggregated by its IfcRoof; its layers, outside first, as a material layer set.">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name><simpleValue>IFCSLAB</simpleValue></name>
+          <predefinedType><simpleValue>ROOF</simpleValue></predefinedType>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELAGGREGATES" cardinality="required">
+          <entity><name><simpleValue>IFCROOF</simpleValue></name></entity>
+        </partOf>
+      </requirements>
+    </specification>
+    <specification name="Rooms" ifcVersion="IFC2X3 IFC4"
+                   description="Each room as a space of its storey, named, with its floor area's use by DIN 277 where known."
+                   instructions="A space's body is its clear outline extruded (a straight prism); its use, where given, a classification reference of the system 'DIN 277' ('NUF 1', 'TF', 'VF'), else it is read from the name. Without spaces the trades' figures (Wohnfläche, DIN 277, heat load room by room) and Energieberatung's zones cannot be worked out.">
+      <applicability minOccurs="1" maxOccurs="unbounded">
+        <entity><name><simpleValue>IFCSPACE</simpleValue></name></entity>
+      </applicability>
+      <requirements>
+        <attribute cardinality="required"><name><simpleValue>Name</simpleValue></name></attribute>
+        <partOf relation="IFCRELAGGREGATES" cardinality="required">
+          <entity><name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name></entity>
+        </partOf>
+      </requirements>
+    </specification>
+  </specifications>
+</ids>

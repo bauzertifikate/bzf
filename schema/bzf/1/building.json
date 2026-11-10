@@ -1,0 +1,715 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/building.json",
+  "title": "bzf building document",
+  "description": "A building, `buildings/<id>.json`: what a project keeps of a building, which every trade reads and writes, each deriving its own figures from it. It stores what is built: where a wall's reference line runs and where its layers lie, the top of a slab, a roof plate's plane; no module's convention (the envelope's planes, a trade's measuring rule) and nothing that can be worked out again (faces, room figures, quantities). This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
+  "x-bzf-status": "draft",
+  "x-bzf-class": "building",
+  "type": "object",
+  "properties": {
+    "schema": { "$ref": "common.json#/$defs/schemaVersion" }
+  },
+  "required": ["schema"],
+  "additionalProperties": true,
+  "if": { "properties": { "schema": { "pattern": "^1\\." } } },
+  "then": { "$ref": "#/$defs/building" },
+  "$defs": {
+    "building": {
+      "type": "object",
+      "properties": {
+        "schema": { "$ref": "common.json#/$defs/schemaVersion" },
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "$ref": "common.json#/$defs/label" },
+        "parts": {
+          "description": "Parts standing side by side: a house and its extension, the halves of a split-level house.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/part" }
+        },
+        "constructions": {
+          "description": "The build-ups its walls, slabs and roofs refer to.",
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/construction" }
+        },
+        "neighbours": {
+          "description": "The buildings next door it is built against.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/neighbour" }
+        },
+        "identifiers": {
+          "description": "Its ids in others' systems: the cadastre's, a land register's, a national building database's once one exists.",
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/identifier" }
+        },
+        "address": { "description": "Its postal address (a building on a corner may have several: the first is its main one).", "$ref": "common.json#/$defs/address" },
+        "addresses": { "description": "Further addresses of the same building.", "type": "array", "items": { "$ref": "common.json#/$defs/address" } },
+        "year": { "description": "The year it was built (Baujahr); a part built later says its own.", "$ref": "common.json#/$defs/year" },
+        "use": {
+          "description": "Whether it is lived in, used otherwise, or both (a Wohn- und Geschäftshaus).",
+          "anyOf": [{ "enum": ["residential", "nonResidential", "mixed"] }, { "$ref": "common.json#/$defs/newerValue" }]
+        },
+        "category": {
+          "description": "Its category as the EPBD's Annex I lists them: single-family house, apartment block, office, education, hospital, hotel and restaurant, sports, wholesale and retail, other.",
+          "anyOf": [
+            { "enum": ["singleFamily", "apartmentBlock", "office", "education", "hospital", "hotelRestaurant", "sports", "retail", "other"] },
+            { "$ref": "common.json#/$defs/newerValue" }
+          ]
+        },
+        "dwellings": { "description": "How many dwellings (Wohneinheiten) it has.", "type": "integer", "minimum": 0 },
+        "airtightness": { "$ref": "#/$defs/airtightness" },
+        "thermalBridges": {
+          "description": "How the envelope's thermal bridges are accounted for (EPBD Annex I 4(a)(v)): `default` (a flat allowance), `reduced` (details to a catalogue, DIN 4108 Beiblatt 2), `detailed` (each bridge calculated), with the allowance on the envelope's U-values, W/(m²·K), where one applies.",
+          "type": "object",
+          "properties": {
+            "kind": { "anyOf": [{ "enum": ["default", "reduced", "detailed"] }, { "$ref": "common.json#/$defs/newerValue" }] },
+            "deltaU": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": true
+        },
+        "seismic": {
+          "description": "Its seismic safety, where relevant (EPBD Annex VIII 2(f)): the earthquake zone of the national annex to EN 1998-1 (in Germany 0 to 3) and what is known of the structure's resistance.",
+          "type": "object",
+          "properties": { "zone": { "type": "string" }, "note": { "type": "string" } },
+          "additionalProperties": true
+        },
+        "systems": {
+          "description": "Its technical building systems (EPBD Art. 2(6)): heating, hot water, cooling, ventilation, built-in lighting, building automation, on-site generation and storage, and the charging points and meters that go with them.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/system" }
+        }
+      },
+      "required": ["schema", "id"],
+      "additionalProperties": true
+    },
+    "part": {
+      "description": "A building part: its ground, its storeys and its roof.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "$ref": "common.json#/$defs/label" },
+        "ground": { "description": "The ground level, mm.", "type": "integer", "default": 0 },
+        "year": { "description": "The year it was built, where it isn't the building's: an extension.", "$ref": "common.json#/$defs/year" },
+        "airtightness": { "$ref": "#/$defs/airtightness" },
+        "storeys": { "description": "Bottom to top.", "type": "array", "items": { "$ref": "#/$defs/storey" } },
+        "roofs": { "description": "The roof's plates.", "type": "array", "items": { "$ref": "#/$defs/roofPlate" } },
+        "roof": {
+          "description": "The roof as drawn: a shape, free planes or faces each over its region; its plates follow from it.",
+          "$ref": "#/$defs/roof"
+        },
+        "terrain": {
+          "description": "The ground along stretches of its facades where it lies at another level than `ground`.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/terrain" }
+        },
+        "source": { "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["id"],
+      "additionalProperties": true
+    },
+    "terrain": {
+      "description": "The ground along a stretch of a part's facades, or a newer kind of stretch, which names its `kind`. Only measured levels are stored; a level computed from a licensed terrain model that may not be stored is never kept here.",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "from": { "description": "Where the stretch begins in plan, mm, on the outer face of the exterior walls.", "$ref": "common.json#/$defs/point" },
+            "to": { "description": "Where it ends, mm; either way round along the wall.", "$ref": "common.json#/$defs/point" },
+            "level": { "description": "The ground level along it, mm.", "type": "integer" }
+          },
+          "required": ["from", "to", "level"],
+          "additionalProperties": true
+        },
+        { "type": "object", "required": ["kind"] },
+        { "type": "string" }
+      ]
+    },
+    "neighbour": {
+      "description": "A building next door, as a solid: its outline from a level up to a height, cut by its roof; how warm it is kept decides what the walls against it count as (§ 29 GEG).",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "$ref": "common.json#/$defs/label" },
+        "outline": { "description": "The outer face of its walls, mm, counter-clockwise.", "$ref": "common.json#/$defs/ring" },
+        "level": { "description": "Where it starts, mm.", "type": "integer" },
+        "height": { "description": "Up to its highest point, mm.", "type": "integer" },
+        "roof": { "description": "Its roof as drawn.", "$ref": "#/$defs/roof" },
+        "condition": {
+          "description": "How warm it is kept: to at least 19 °C, to 12–19 °C, without heated rooms, or not known yet.",
+          "anyOf": [{ "enum": ["heated", "lowHeated", "unheated", "unknown"] }, { "$ref": "common.json#/$defs/newerValue" }],
+          "default": "unknown"
+        },
+        "source": { "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["id", "outline", "level", "height"],
+      "additionalProperties": true
+    },
+    "storey": {
+      "description": "A storey.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "$ref": "common.json#/$defs/label" },
+        "level": {
+          "description": "The top of its structural slab (Rohdecke), mm. The plane an energy method measures to is its builder's.",
+          "type": "integer"
+        },
+        "height": { "description": "Up to the next storey's level, mm.", "type": "integer", "default": 0 },
+        "floor": {
+          "description": "The floor build-up on the slab (screed, insulation), a construction; its top is the finished floor.",
+          "$ref": "common.json#/$defs/id"
+        },
+        "walls": { "type": "array", "items": { "$ref": "#/$defs/wall" } },
+        "spaces": { "description": "Its rooms and areas.", "type": "array", "items": { "$ref": "#/$defs/space" } },
+        "slabs": { "type": "array", "items": { "$ref": "#/$defs/slab" } },
+        "openings": { "description": "The windows and doors in its walls.", "type": "array", "items": { "$ref": "#/$defs/opening" } },
+        "elements": {
+          "description": "The built parts as the plans give them (frame and cladding, a slab's plate), each pointing at its wall, slab or roof plate.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/element" }
+        },
+        "source": { "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["id", "level"],
+      "additionalProperties": true
+    },
+    "wall": {
+      "description": "A wall: a reference line in plan and where its layers lie relative to it, as IFC's material layer set usage. Layers can be added on either side without moving the line or what refers to it. A drawn wall's layers are its construction; a wall of elements has its layers from them, never both.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "$ref": "common.json#/$defs/label" },
+        "line": {
+          "description": "The reference line from its start to its end, mm. For a wall of elements it lies on the load-bearing layer's outer face, for an inner wall on the load-bearing layer's axis.",
+          "type": "array",
+          "prefixItems": [{ "$ref": "common.json#/$defs/point" }, { "$ref": "common.json#/$defs/point" }],
+          "items": false,
+          "minItems": 2
+        },
+        "placement": { "$ref": "#/$defs/placement" },
+        "construction": { "description": "A drawn wall's build-up.", "$ref": "common.json#/$defs/id" },
+        "elements": {
+          "description": "A wall of elements: its elements, outside first.",
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/id" }
+        },
+        "bottom": { "description": "Its own bottom, mm, where it isn't its storey's level.", "type": "integer" },
+        "top": { "description": "Its own top, mm, where it isn't the slab or roof above.", "type": "integer" },
+        "kind": {
+          "description": "A wall of layers, or a separation line: no layers and no building element, only a boundary between rooms, as where an open plan is divided into kitchen and living room or a hall into zones.",
+          "anyOf": [{ "enum": ["wall", "separation"] }, { "$ref": "common.json#/$defs/newerValue" }],
+          "default": "wall"
+        },
+        "exterior": { "description": "One side faces outdoors.", "type": "boolean", "default": false },
+        "year": { "description": "The year it was built or last renewed.", "$ref": "common.json#/$defs/year" },
+        "phase": { "$ref": "common.json#/$defs/phase" },
+        "source": { "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["id", "line"],
+      "additionalProperties": true
+    },
+    "placement": {
+      "description": "Where a wall's layers lie: its first layer's face `offset` mm from the reference line, to the line's left seen from its start where positive, and the layers following one another to the `sense` side.",
+      "type": "object",
+      "properties": {
+        "offset": { "description": "From the line to the first layer's face, mm, to the left where positive.", "type": "integer", "default": 0 },
+        "sense": {
+          "description": "The side of the line, seen from its start, the layers follow one another to.",
+          "anyOf": [{ "enum": ["left", "right"] }, { "$ref": "common.json#/$defs/newerValue" }],
+          "default": "left"
+        }
+      },
+      "additionalProperties": true
+    },
+    "space": {
+      "description": "A space: drawn, its outline primary and on the reference lines of the walls around it; or bounded by walls, a seed point inside with its clear outline as a cache of what the walls enclose.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "$ref": "common.json#/$defs/label" },
+        "outline": { "description": "A drawn space's outline, mm, counter-clockwise.", "$ref": "common.json#/$defs/ring" },
+        "seed": { "description": "A bounded space's seed, mm.", "$ref": "common.json#/$defs/point" },
+        "clear": {
+          "description": "A bounded space's clear outline as last derived: the outer ring counter-clockwise, then what stands free in it.",
+          "$ref": "#/$defs/cache",
+          "properties": { "value": { "type": "array", "items": { "$ref": "common.json#/$defs/ring" } } }
+        },
+        "use": {
+          "description": "Its use as DIN 277 groups it (\"NUF 1\", \"TF\", \"VF\"); the rules of other methods are derived from it.",
+          "type": "string"
+        },
+        "apartment": { "description": "The unit it belongs to.", "type": "string" },
+        "designTemperature": {
+          "description": "The indoor temperatures it is designed for, °C, where they differ from the method's standard conditions for its use (EPBD Annex I 4(i)).",
+          "type": "object",
+          "properties": { "heating": { "type": "number" }, "cooling": { "type": "number" } },
+          "additionalProperties": true
+        },
+        "internalGains": { "description": "Its internal heat gains, W/m², where they differ from the method's standard conditions for its use (EPBD Annex I 4(j)).", "type": "number", "minimum": 0 },
+        "condition": { "$ref": "#/$defs/condition" },
+        "phase": { "$ref": "common.json#/$defs/phase" },
+        "source": { "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["id"],
+      "additionalProperties": true
+    },
+    "cache": {
+      "description": "A value derived from stored ones and kept for speed, with the derivation that made it, so a newer one is noticed.",
+      "type": "object",
+      "properties": {
+        "value": { "description": "The derived value." },
+        "derivation": { "description": "What made it: \"geometry::rooms 1\".", "type": "string" }
+      },
+      "required": ["value", "derivation"],
+      "additionalProperties": true
+    },
+    "condition": {
+      "description": "What a space is for the energy balance: heated in a zone, unheated with its kind, or open to the outside air; or a newer condition, kept as it came.",
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "description": "Kept at room temperature, in a zone of the balance.",
+              "type": "object",
+              "properties": {
+                "kind": { "const": "heated" },
+                "zone": { "description": "The zone; spaces of one zone share it. Empty for a building with a single zone.", "type": "string", "default": "" }
+              },
+              "required": ["kind"],
+              "additionalProperties": true
+            },
+            {
+              "description": "Inside the building but not heated.",
+              "type": "object",
+              "properties": {
+                "kind": { "const": "unheated" },
+                "space": {
+                  "description": "What the space is, which decides its temperature in the balance: an attic under an uninsulated or an insulated roof, another unheated room (a stairwell, a garage), a cellar, a room kept at 12 to 19 °C, a sunspace with single, double or low-e glazing. Documents written before 2026-11-08 have the German names, which readers take as aliases: `dachraum_ungedaemmt`, `dachraum_gedaemmt`, `unbeheizter_raum`, `keller`, `niedrig_beheizt`, `glasvorbau_einfach`, `glasvorbau_zweifach`, `glasvorbau_waermeschutz`.",
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "atticUninsulatedRoof",
+                        "atticInsulatedRoof",
+                        "unheatedRoom",
+                        "cellar",
+                        "lowHeated",
+                        "sunspaceSingleGlazed",
+                        "sunspaceDoubleGlazed",
+                        "sunspaceLowE"
+                      ]
+                    },
+                    { "$ref": "common.json#/$defs/newerValue" }
+                  ]
+                }
+              },
+              "required": ["kind", "space"],
+              "additionalProperties": true
+            },
+            {
+              "description": "Inside the outline but open to the outside air: a loggia, a passage.",
+              "type": "object",
+              "properties": { "kind": { "const": "outdoor" } },
+              "required": ["kind"],
+              "additionalProperties": true
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": { "kind": { "not": { "enum": ["heated", "unheated", "outdoor"] } } },
+          "additionalProperties": true
+        },
+        { "type": "string" }
+      ]
+    },
+    "slab": {
+      "description": "A slab: an outline in plan, its top and its layers.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "$ref": "common.json#/$defs/label" },
+        "outline": { "description": "mm, counter-clockwise.", "$ref": "common.json#/$defs/ring" },
+        "holes": { "description": "Openings through it (a stairwell), clockwise.", "type": "array", "items": { "$ref": "common.json#/$defs/ring" } },
+        "top": { "description": "Its top, mm.", "type": "integer" },
+        "construction": { "description": "Its build-up.", "$ref": "common.json#/$defs/id" },
+        "elements": { "description": "Its elements, outside first.", "type": "array", "items": { "$ref": "common.json#/$defs/id" } },
+        "year": { "description": "The year it was built or last renewed.", "$ref": "common.json#/$defs/year" },
+        "phase": { "$ref": "common.json#/$defs/phase" },
+        "source": { "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["id", "outline", "top"],
+      "additionalProperties": true
+    },
+    "opening": {
+      "description": "A window, a door, an opening: one item hosted by a wall, so a window in a two-layer wall is one window; the holes in each layer are derived from it.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "$ref": "common.json#/$defs/label" },
+        "host": { "description": "The wall it is in.", "$ref": "common.json#/$defs/id" },
+        "offset": { "description": "From the wall's reference line's start to the opening's near side, mm.", "type": "integer" },
+        "sill": { "description": "Its bottom above the storey's level, mm.", "type": "integer", "default": 0 },
+        "width": { "description": "mm.", "type": "integer" },
+        "height": { "description": "mm.", "type": "integer" },
+        "kind": {
+          "description": "A window, a door, or neither (a pass-through, a hatch).",
+          "anyOf": [{ "enum": ["window", "door", "other"] }, { "$ref": "common.json#/$defs/newerValue" }],
+          "default": "window"
+        },
+        "uValue": { "description": "Its thermal transmittance as a whole, frame included (Uw, Ud), W/(m²·K), from the product or as assessed.", "type": "number", "exclusiveMinimum": 0 },
+        "gValue": { "description": "The glazing's total solar energy transmittance g, as a fraction.", "type": "number", "minimum": 0, "maximum": 1 },
+        "lightTransmittance": { "description": "The glazing's light transmittance τv (τD65), as a fraction: the daylight it lets in (EPBD Annex I 5(d), natural lighting).", "type": "number", "minimum": 0, "maximum": 1 },
+        "glazing": {
+          "anyOf": [{ "enum": ["single", "double", "triple", "insulatingDouble", "boxWindow"] }, { "$ref": "common.json#/$defs/newerValue" }]
+        },
+        "frame": {
+          "anyOf": [{ "enum": ["wood", "plastic", "aluminium", "woodAluminium", "steel"] }, { "$ref": "common.json#/$defs/newerValue" }]
+        },
+        "shading": {
+          "description": "Its fixed or movable sun shading.",
+          "anyOf": [
+            { "enum": ["none", "rollerShutter", "externalBlinds", "internalBlinds", "awning", "overhang"] },
+            { "$ref": "common.json#/$defs/newerValue" }
+          ]
+        },
+        "product": { "$ref": "common.json#/$defs/product" },
+        "year": { "description": "The year it was built or last renewed.", "$ref": "common.json#/$defs/year" },
+        "phase": { "$ref": "common.json#/$defs/phase" },
+        "source": { "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["id", "host", "offset", "width", "height"],
+      "additionalProperties": true
+    },
+    "roofPlate": {
+      "description": "A roof plate, or any sloping plate.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "$ref": "common.json#/$defs/label" },
+        "plate": { "$ref": "#/$defs/plate" },
+        "construction": { "description": "Its build-up.", "$ref": "common.json#/$defs/id" },
+        "elements": { "description": "Its elements, outside first.", "type": "array", "items": { "$ref": "common.json#/$defs/id" } },
+        "year": { "description": "The year it was built or last renewed.", "$ref": "common.json#/$defs/year" },
+        "phase": { "$ref": "common.json#/$defs/phase" },
+        "source": { "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["id", "plate"],
+      "additionalProperties": true
+    },
+    "plate": {
+      "description": "A plate, exact and plane: a plane through three integer points and its outline in the plane's own integer coordinates (from the first point, u towards the second, v at right angles to it in the plane, mm), the plate reaching `thickness` mm from it against the plane's normal (the right-handed normal of its three points).",
+      "type": "object",
+      "properties": {
+        "plane": { "$ref": "#/$defs/plane" },
+        "outline": { "description": "The outline in the plane's coordinates, mm.", "$ref": "common.json#/$defs/ring" },
+        "holes": { "description": "Holes through it, in the same coordinates.", "type": "array", "items": { "$ref": "common.json#/$defs/ring" } },
+        "thickness": { "description": "mm.", "type": "integer", "default": 0 }
+      },
+      "required": ["plane", "outline"],
+      "additionalProperties": true
+    },
+    "plane": {
+      "description": "A plane through three points, mm, which must not lie on one line.",
+      "type": "object",
+      "properties": {
+        "points": {
+          "description": "Three points on the plane: x, y and height.",
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/point3" },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "required": ["points"],
+      "additionalProperties": true
+    },
+    "element": {
+      "description": "A built part as a source gives it: a layer of a wall, a slab's or a roof's plate.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "description": "The source's name for it: \"Außenwand Holzrahmen\".", "type": "string" },
+        "kind": {
+          "description": "A wall's layer, a slab's plate, a roof's plate, or anything else.",
+          "anyOf": [{ "enum": ["wall", "slab", "roof", "other"] }, { "$ref": "common.json#/$defs/newerValue" }],
+          "default": "wall"
+        },
+        "of": { "description": "The wall, slab or roof plate it is part of.", "$ref": "common.json#/$defs/id" },
+        "layer": { "description": "Which of their layers, outside first.", "type": "integer", "minimum": 0 },
+        "plate": { "$ref": "#/$defs/plate" },
+        "solid": { "description": "The solid it came as, in its plan state's import: valid while the plate is unchanged.", "type": "string" },
+        "year": { "description": "The year it was built or last renewed.", "$ref": "common.json#/$defs/year" },
+        "phase": { "$ref": "common.json#/$defs/phase" },
+        "source": { "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["id"],
+      "additionalProperties": true
+    },
+    "roof": {
+      "description": "A roof over a building part as drawn: a shape over a rectangle of the frame, free planes, or faces each over its own region; or a newer kind of roof, kept as it came. Heights are mm like the storey levels. The shapes and free planes are convex, over each point their lowest plane; faces carry valleys and steps.",
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "description": "Free planes; over each point the lowest one is the roof.",
+              "type": "object",
+              "properties": {
+                "kind": { "const": "planes" },
+                "planes": { "type": "array", "items": { "$ref": "#/$defs/plane" } }
+              },
+              "required": ["kind", "planes"],
+              "additionalProperties": true
+            },
+            {
+              "description": "Pultdach: one plane, at `eaves` along the rectangle's `low` side and at `top` along the opposite one.",
+              "type": "object",
+              "properties": {
+                "kind": { "const": "mono" },
+                "rect": { "$ref": "#/$defs/rect" },
+                "low": { "$ref": "#/$defs/rectSide" },
+                "eaves": { "type": "integer" },
+                "top": { "type": "integer" }
+              },
+              "required": ["kind", "rect", "low", "eaves", "top"],
+              "additionalProperties": true
+            },
+            {
+              "description": "Satteldach: eaves at `eaves` on both long sides, the ridge at `top` along `ridge`, halfway across or at `ridgeAt`.",
+              "type": "object",
+              "properties": {
+                "kind": { "const": "gable" },
+                "rect": { "$ref": "#/$defs/rect" },
+                "ridge": { "$ref": "#/$defs/axis" },
+                "eaves": { "type": "integer" },
+                "top": { "type": "integer" },
+                "ridgeAt": { "description": "For an asymmetric roof, the ridge's coordinate across the rectangle (y for a ridge along x).", "type": "integer" }
+              },
+              "required": ["kind", "rect", "ridge", "eaves", "top"],
+              "additionalProperties": true
+            },
+            {
+              "description": "Walmdach: a gable whose ends slope too, each hip plane reaching the ridge's height `hipRun` in from its end (by default as steep as the long sides).",
+              "type": "object",
+              "properties": {
+                "kind": { "const": "hip" },
+                "rect": { "$ref": "#/$defs/rect" },
+                "ridge": { "$ref": "#/$defs/axis" },
+                "eaves": { "type": "integer" },
+                "top": { "type": "integer" },
+                "hipRun": { "type": "integer" }
+              },
+              "required": ["kind", "rect", "ridge", "eaves", "top"],
+              "additionalProperties": true
+            },
+            {
+              "description": "Krüppelwalmdach: a gable whose end walls stop at `hipBase`; above it a small hip plane reaches the ridge's height `hipRun` in from the end.",
+              "type": "object",
+              "properties": {
+                "kind": { "const": "halfHip" },
+                "rect": { "$ref": "#/$defs/rect" },
+                "ridge": { "$ref": "#/$defs/axis" },
+                "eaves": { "type": "integer" },
+                "top": { "type": "integer" },
+                "hipBase": { "type": "integer" },
+                "hipRun": { "type": "integer" }
+              },
+              "required": ["kind", "rect", "ridge", "eaves", "top", "hipBase", "hipRun"],
+              "additionalProperties": true
+            },
+            {
+              "description": "Mansarddach: each long side rises steeply from `eaves` to `breakHeight`, `breakRun` in from its edge, then less steeply to the ridge at `top` halfway across; the ends are walls.",
+              "type": "object",
+              "properties": {
+                "kind": { "const": "mansard" },
+                "rect": { "$ref": "#/$defs/rect" },
+                "ridge": { "$ref": "#/$defs/axis" },
+                "eaves": { "type": "integer" },
+                "top": { "type": "integer" },
+                "breakHeight": { "type": "integer" },
+                "breakRun": { "type": "integer" }
+              },
+              "required": ["kind", "rect", "ridge", "eaves", "top", "breakHeight", "breakRun"],
+              "additionalProperties": true
+            },
+            {
+              "description": "Zeltdach: four planes rising from `eaves` on every side to a peak at `top` in the rectangle's middle.",
+              "type": "object",
+              "properties": {
+                "kind": { "const": "pyramid" },
+                "rect": { "$ref": "#/$defs/rect" },
+                "eaves": { "type": "integer" },
+                "top": { "type": "integer" }
+              },
+              "required": ["kind", "rect", "eaves", "top"],
+              "additionalProperties": true
+            },
+            {
+              "description": "Faces, each a plane over its own region of the plan, as LoD2 delivers a roof. The regions must not overlap; where two faces meet at different heights, the step between them is a wall to outside air.",
+              "type": "object",
+              "properties": {
+                "kind": { "const": "faces" },
+                "faces": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "outline": { "description": "The region in plan, mm, counter-clockwise.", "$ref": "common.json#/$defs/ring" },
+                      "plane": { "$ref": "#/$defs/plane" }
+                    },
+                    "required": ["outline", "plane"],
+                    "additionalProperties": true
+                  }
+                }
+              },
+              "required": ["kind", "faces"],
+              "additionalProperties": true
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "not": { "enum": ["planes", "mono", "gable", "hip", "halfHip", "mansard", "pyramid", "faces"] } }
+          },
+          "additionalProperties": true
+        },
+        { "type": "string" }
+      ]
+    },
+    "rect": {
+      "description": "A rectangle along the frame's axes, mm: from and to in x and in y.",
+      "type": "object",
+      "properties": {
+        "x": { "type": "array", "prefixItems": [{ "type": "integer" }, { "type": "integer" }], "items": false, "minItems": 2 },
+        "y": { "type": "array", "prefixItems": [{ "type": "integer" }, { "type": "integer" }], "items": false, "minItems": 2 }
+      },
+      "required": ["x", "y"],
+      "additionalProperties": true
+    },
+    "axis": {
+      "description": "An axis of the frame.",
+      "anyOf": [{ "enum": ["x", "y"] }, { "$ref": "common.json#/$defs/newerValue" }]
+    },
+    "rectSide": {
+      "description": "A side of a rectangle: at the smaller or larger x or y.",
+      "anyOf": [{ "enum": ["xMin", "xMax", "yMin", "yMax"] }, { "$ref": "common.json#/$defs/newerValue" }]
+    },
+    "airtightness": {
+      "description": "The airtightness measured with a blower-door test (EN ISO 9972): the air change rate at 50 Pa, and when it was measured.",
+      "type": "object",
+      "properties": {
+        "n50": { "description": "Air changes per hour at 50 Pa, 1/h.", "type": "number", "minimum": 0 },
+        "q50": { "description": "Air permeability at 50 Pa, m³/(h·m²), where given instead.", "type": "number", "minimum": 0 },
+        "measured": { "$ref": "common.json#/$defs/date" },
+        "source": { "$ref": "common.json#/$defs/source" }
+      },
+      "additionalProperties": true
+    },
+    "system": {
+      "description": "A technical building system or a part of one, as it is installed: a generator, a store, a distribution, the emitters, a ventilation unit, a PV array, a battery, a charging point, a meter, the building automation. What the data sheet or the type plate says is stored; what a method assumes for it (DIN/TS 18599's defaults by kind and year) is derived, never stored. Systems connect by `feeds` (a boiler feeds a store, a store the distribution, the distribution the emitters) and say what they serve.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/id" },
+        "label": { "$ref": "common.json#/$defs/label" },
+        "kind": {
+          "description": "What it is.",
+          "anyOf": [
+            {
+              "enum": [
+                "boiler",
+                "heatPump",
+                "districtHeatingStation",
+                "electricHeater",
+                "stove",
+                "chp",
+                "solarThermal",
+                "photovoltaic",
+                "battery",
+                "thermalStorage",
+                "distribution",
+                "emitters",
+                "ventilationUnit",
+                "coolingUnit",
+                "chargingPoint",
+                "meter",
+                "automation",
+                "lighting"
+              ]
+            },
+            { "$ref": "common.json#/$defs/newerValue" }
+          ]
+        },
+        "type": {
+          "description": "Its type within its kind. Known values: a boiler `standard`, `lowTemperature` or `condensing`; a heat pump by its source, `outdoorAir`, `exhaustAir`, `ground` or `water`; an electric heater `storage` or `direct`; a thermal storage `hotWater`, `buffer` or `combined`; emitters `radiators`, `underfloor`, `wallOrCeiling` or `air`; a ventilation unit `exhaust` or `supplyAndExhaust`; a charging point `ac` or `dc`; a meter by what it measures (a carrier); automation `bacs`, `roomControl`, `indoorQualitySensors` or `indoorQualityControls`. Any other is kept.",
+          "type": "string"
+        },
+        "services": { "description": "The energy services it serves.", "type": "array", "items": { "$ref": "common.json#/$defs/service" } },
+        "carrier": { "description": "The energy carrier it takes in: gas for a gas boiler, electricity for a heat pump.", "$ref": "common.json#/$defs/carrier" },
+        "year": { "description": "The year it was installed (Baujahr, from the type plate).", "$ref": "common.json#/$defs/year" },
+        "endOfLife": { "description": "The year it is expected to be replaced, where someone assessed it (EPBD Annex V: remaining lifespan).", "$ref": "common.json#/$defs/year" },
+        "output": { "description": "Nominal output, kW: heat for a generator, cooling for a cooling unit, charging power for a charging point.", "type": "number", "minimum": 0 },
+        "peakPower": { "description": "A PV array's peak power, kWp.", "type": "number", "minimum": 0 },
+        "volume": { "description": "A thermal storage's volume, litres (not m³).", "type": "number", "minimum": 0 },
+        "energy": { "description": "A battery's usable capacity, kWh: an amount of energy, not a volume.", "type": "number", "minimum": 0 },
+        "area": { "description": "Collector or module area, m².", "type": "number", "minimum": 0 },
+        "flowTemperature": { "description": "The design supply temperature of a distribution or of emitters, °C: whether the heating can run at low temperature follows from it (EPBD Annex V).", "type": "number" },
+        "heatRecovery": { "description": "A ventilation unit's heat recovery efficiency, as a fraction.", "type": "number", "minimum": 0, "maximum": 1 },
+        "efficiency": { "description": "A generator's seasonal efficiency as its data sheet or an assessment gives it, as a fraction (EPBD Art. 16(1): energy performance of building services).", "type": "number", "exclusiveMinimum": 0 },
+        "scop": { "description": "A heat pump's seasonal coefficient of performance (SCOP) or seasonal performance factor (Jahresarbeitszahl), as stated.", "type": "number", "exclusiveMinimum": 0 },
+        "seer": { "description": "A cooling unit's seasonal energy efficiency ratio (SEER), as stated (EPBD Annex I 4(d), Art. 16(1)).", "type": "number", "exclusiveMinimum": 0 },
+        "power": { "description": "Rated electrical input power, kW: built-in lighting (EPBD Annex I 4(f)), fans, pumps.", "type": "number", "minimum": 0 },
+        "airflow": { "description": "A ventilation unit's design air volume flow, m³/h (EPBD Annex I 4(e)).", "type": "number", "minimum": 0 },
+        "specificFanPower": { "description": "A ventilation unit's specific fan power, W/(m³/h).", "type": "number", "minimum": 0 },
+        "insulation": {
+          "description": "How a distribution's pipes or a thermal storage are insulated (EPBD Annex I 4(b): the installations' insulation characteristics): `none`, `partial`, `toStandard` (as the energy law requires for new pipes).",
+          "anyOf": [{ "enum": ["none", "partial", "toStandard"] }, { "$ref": "common.json#/$defs/newerValue" }]
+        },
+        "standingLoss": { "description": "A thermal storage's standing heat loss, kWh a day, as its data sheet gives it.", "type": "number", "minimum": 0 },
+        "factors": {
+          "description": "The primary energy and emission factors of what it takes in where they are its own: a district heating station's network (EPBD Annex V 2(s)), a CHP's fuel.",
+          "type": "object",
+          "properties": {
+            "primary": { "description": "Primary energy factor (non-renewable part).", "type": "number", "minimum": 0 },
+            "emission": { "description": "Emission factor, g CO₂-eq/kWh.", "type": "number", "minimum": 0 },
+            "source": { "description": "Who states them: the network operator's certificate, a published value.", "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "automationClass": {
+          "description": "The building automation and control class of EN ISO 52120-1, A (highest) to D.",
+          "anyOf": [{ "enum": ["A", "B", "C", "D"] }, { "$ref": "common.json#/$defs/newerValue" }]
+        },
+        "signals": { "description": "Whether it can react to external signals and adjust its consumption (EPBD Annex V).", "type": "boolean" },
+        "coverage": { "description": "The share of its services' demand it covers where several generators share it (a heat pump with a gas boiler for the peaks), as a fraction.", "type": "number", "minimum": 0, "maximum": 1 },
+        "perDwelling": { "description": "One like it in each dwelling (an Etagenheizung) rather than one for the building.", "type": "boolean", "default": false },
+        "count": { "description": "How many alike it stands for: charging points, room devices.", "type": "integer", "minimum": 1, "default": 1 },
+        "feeds": { "description": "The systems it supplies.", "type": "array", "items": { "$ref": "common.json#/$defs/id" } },
+        "serves": { "description": "What it serves: parts, storeys, spaces; all of the building where absent.", "type": "array", "items": { "$ref": "common.json#/$defs/id" } },
+        "location": { "description": "The space or storey it stands in.", "$ref": "common.json#/$defs/id" },
+        "on": { "description": "The roof plate or wall it is mounted on: a PV array's or collectors' orientation and tilt follow from it.", "$ref": "common.json#/$defs/id" },
+        "product": { "$ref": "common.json#/$defs/product" },
+        "values": { "description": "Further product values as the data sheet gives them (efficiencies, COP or SCOP, standing loss), each by a name its reader knows; opaque to others.", "type": "object" },
+        "phase": { "$ref": "common.json#/$defs/phase" },
+        "source": { "$ref": "common.json#/$defs/source" }
+      },
+      "required": ["id", "kind"],
+      "additionalProperties": true
+    },
+    "override": {
+      "description": "A value typed over a derived one: the derived item's key (the ids it comes from, the kind and an ordinal among equal keys) and a fingerprint, so it is re-attached after an edit or shown as orphaned, never dropped. Opaque to readers: the key's grammar is the deriving builder's. Not yet placed in a document.",
+      "type": "object",
+      "properties": {
+        "key": { "type": "string" },
+        "area": { "description": "What it was typed over: its area, m².", "type": "number" },
+        "centre": {
+          "description": "And its centre, mm.",
+          "type": "array",
+          "prefixItems": [{ "type": "number" }, { "type": "number" }, { "type": "number" }],
+          "items": false,
+          "minItems": 3
+        },
+        "value": { "description": "The value typed." }
+      },
+      "required": ["key", "value"],
+      "additionalProperties": true
+    }
+  }
+}

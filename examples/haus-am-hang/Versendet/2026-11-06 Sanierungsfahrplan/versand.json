@@ -1,0 +1,80 @@
+{
+  "revision": "2b214ddf3326016519afcb268f63623b80b91a65265277668e4d020d87dd9078",
+  "app": "Energieberatung",
+  "appVersion": "0.9.0",
+  "kernelVersion": "0.4.0",
+  "device": "019a5e00-0000-7000-8000-0000000000ff",
+  "account": null,
+  "organisation": null,
+  "to": "Eigentümerin",
+  "time": "2026-11-06T12:00:00+01:00",
+  "type": "renovationRoadmap",
+  "registrations": [],
+  "figures": [
+    {
+      "state": "current",
+      "primaryEnergy": 182,
+      "finalEnergy": 165,
+      "emissions": 41,
+      "energyCosts": {
+        "amount": 2860
+      }
+    },
+    {
+      "state": "019a5e00-0000-7000-8000-000000000021",
+      "primaryEnergy": 151,
+      "finalEnergy": 137,
+      "emissions": 34,
+      "energyCosts": {
+        "amount": 2390
+      }
+    },
+    {
+      "state": "019a5e00-0000-7000-8000-000000000022",
+      "primaryEnergy": 98,
+      "finalEnergy": 89,
+      "emissions": 22,
+      "energyCosts": {
+        "amount": 1640
+      }
+    },
+    {
+      "state": "019a5e00-0000-7000-8000-000000000023",
+      "primaryEnergy": 41,
+      "finalEnergy": 28,
+      "emissions": 9,
+      "energyCosts": {
+        "amount": 980
+      },
+      "standard": "de:effizienzhaus-70"
+    },
+    {
+      "state": "target",
+      "primaryEnergy": 41,
+      "finalEnergy": 28,
+      "emissions": 9,
+      "standard": "de:effizienzhaus-70"
+    }
+  ],
+  "inputs": {
+    "buildings/019a5e00-0000-7000-8000-000000000002.json": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+    "project.json": "148de9c5a7a44d19e56cd9ae1a554bf67847afb0c58f6e12fa29ac7ddfca9940",
+    "roadmaps/019a5e00-0000-7000-8000-00000000002c.json": "454349e422f05297191ead13e21d3db520e5abef52055e4964b82fb213f593a1"
+  },
+  "files": [
+    {
+      "name": "Sanierungsfahrplan.pdf",
+      "sha256": "04ac98a6dced7dee70d6d11952a2aa6702ad773bc9fa80333681d6ed89b7cd14",
+      "size": 2400000,
+      "mediaType": "application/pdf"
+    },
+    {
+      "name": "Sanierungsfahrplan-Daten.xml",
+      "sha256": "af659110f868b33a150b58d4098966cadd73c08697b2bc960f7d035ea1f2b47c",
+      "size": 35000,
+      "mediaType": "application/xml",
+      "format": "bafa-isfp"
+    }
+  ],
+  "roadmap": "019a5e00-0000-7000-8000-00000000002c"
+}

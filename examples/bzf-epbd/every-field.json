@@ -1,0 +1,587 @@
+{
+  "format": "bzf-epbd/0.1",
+  "language": "de",
+  "currency": "EUR",
+  "written": {
+    "time": "2026-11-08T18:00:00+01:00",
+    "app": "bauzertifikate Aufmaß",
+    "appVersion": "0.5.0",
+    "kernelVersion": "0.4.0",
+    "project": "019a5e00-0000-7000-8000-000000000001",
+    "revision": "2b214ddf3326016519afcb268f63623b80b91a65265277668e4d020d87dd9078"
+  },
+  "building": {
+    "identifiers": [
+      {
+        "scheme": "de:alkis",
+        "value": "DEBWL0000example"
+      }
+    ],
+    "address": {
+      "street": "Am Hang",
+      "number": "7",
+      "postcode": "88212",
+      "city": "Musterstadt",
+      "country": "DE"
+    },
+    "location": {
+      "crs": "EPSG:25832",
+      "easting": 541200.0,
+      "northing": 5291300.0
+    },
+    "year": 1968,
+    "use": "residential",
+    "category": "singleFamily",
+    "dwellings": 1,
+    "n50": 6.0,
+    "thermalBridges": {
+      "kind": "reduced",
+      "deltaU": 0.05
+    },
+    "seismic": {
+      "zone": "0",
+      "note": "Erdbebenzone 0 nach DIN EN 1998-1/NA; Mauerwerk ohne bekannte Schäden"
+    }
+  },
+  "envelope": {
+    "heatedVolume": 620.0,
+    "netFloorArea": 192.0,
+    "area": 410.0,
+    "parts": [
+      {
+        "kind": "wall",
+        "boundary": "outside",
+        "azimuth": 180.0,
+        "area": 62.0
+      },
+      {
+        "kind": "window",
+        "boundary": "outside",
+        "azimuth": 180.0,
+        "area": 14.0
+      },
+      {
+        "kind": "floor",
+        "boundary": "ground",
+        "area": 96.0
+      }
+    ],
+    "meanUTransparent": 2.7,
+    "meanUOpaque": 1.1,
+    "commonWindow": "insulatingDouble",
+    "meanG": 0.75,
+    "shadedShare": 0.8
+  },
+  "systems": [
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001a",
+      "kind": "boiler",
+      "type": "lowTemperature",
+      "services": [
+        "heating",
+        "hotWater"
+      ],
+      "carrier": "naturalGas",
+      "output": 24.0,
+      "year": 1994,
+      "endOfLife": 2028,
+      "signals": false,
+      "efficiency": 0.89
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001b",
+      "kind": "thermalStorage",
+      "type": "hotWater",
+      "services": [
+        "hotWater"
+      ],
+      "year": 1994,
+      "insulation": "partial",
+      "standingLoss": 1.8,
+      "volume": 160.0
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001c",
+      "kind": "distribution",
+      "services": [
+        "heating"
+      ],
+      "flowTemperature": 70.0,
+      "insulation": "none"
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001d",
+      "kind": "emitters",
+      "type": "radiators",
+      "services": [
+        "heating"
+      ],
+      "flowTemperature": 70.0
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-00000000001e",
+      "kind": "meter",
+      "type": "naturalGas"
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-0000000000a1",
+      "kind": "automation",
+      "type": "indoorQualitySensors",
+      "automationClass": "C"
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-0000000000a2",
+      "kind": "automation",
+      "type": "indoorQualityControls"
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-0000000000a3",
+      "kind": "photovoltaic",
+      "peakPower": 6.0,
+      "area": 30.0,
+      "year": 2021
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-0000000000a4",
+      "kind": "battery",
+      "year": 2021,
+      "signals": true,
+      "energy": 5.0
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-0000000000a5",
+      "kind": "chargingPoint",
+      "type": "ac",
+      "output": 11.0,
+      "year": 2021,
+      "count": 1
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-0000000000a6",
+      "kind": "ventilationUnit",
+      "type": "exhaust",
+      "services": [
+        "ventilation"
+      ],
+      "airflow": 90.0,
+      "specificFanPower": 0.2
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-0000000000a8",
+      "kind": "coolingUnit",
+      "services": [
+        "cooling"
+      ],
+      "output": 2.5,
+      "year": 2019,
+      "seer": 6.1
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-0000000000a9",
+      "kind": "lighting",
+      "services": [
+        "lighting"
+      ],
+      "power": 0.4
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-0000000000a7",
+      "kind": "districtHeatingStation",
+      "carrier": "districtHeating",
+      "factors": {
+        "primary": 0.4,
+        "emission": 120.0,
+        "source": "Stadtwerke Musterstadt (Beispiel)"
+      }
+    }
+  ],
+  "consumption": [
+    {
+      "carrier": "naturalGas",
+      "services": [
+        "heating",
+        "hotWater"
+      ],
+      "from": "2023-01-01",
+      "to": "2023-12-31",
+      "amount": 23100.0,
+      "unit": "kWh"
+    },
+    {
+      "carrier": "naturalGas",
+      "services": [
+        "heating",
+        "hotWater"
+      ],
+      "from": "2024-01-01",
+      "to": "2024-12-31",
+      "amount": 21800.0,
+      "unit": "kWh"
+    },
+    {
+      "carrier": "naturalGas",
+      "services": [
+        "heating",
+        "hotWater"
+      ],
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "amount": 22400.0,
+      "unit": "kWh"
+    }
+  ],
+  "certificate": {
+    "issued": "2026-10-20T15:00:00+02:00",
+    "validUntil": "2036-10-19",
+    "registrations": [
+      {
+        "scheme": "de:dibt",
+        "value": "BW-2026-000000000 (example)",
+        "time": "2026-10-20T14:58:00+02:00"
+      }
+    ],
+    "basis": "calculated",
+    "method": "DIN/TS 18599:2025-10",
+    "figures": {
+      "class": "F",
+      "classScale": "eu",
+      "primaryEnergy": 182.0,
+      "primaryEnergyTotal": 190.0,
+      "primaryEnergyRenewable": 8.0,
+      "finalEnergy": 165.0,
+      "energyNeed": 120.0,
+      "emissions": 41.0,
+      "emissionClass": "E",
+      "renewableShare": 0.18,
+      "renewableProduction": 5700.0,
+      "selfConsumption": 0.3,
+      "lifeCycleGwp": 400.0,
+      "lifeCycleGwpStages": {
+        "A1-A3": 250.0,
+        "B1-B7": 120.0,
+        "C1-C4": 30.0
+      },
+      "carbonRemovals": 12.0,
+      "pm25": 0.4,
+      "uses": {
+        "heating": {
+          "energyNeed": 100.0,
+          "finalEnergy": 140.0,
+          "primaryEnergy": 154.0,
+          "peakLoad": 14.5
+        },
+        "hotWater": {
+          "finalEnergy": 25.0
+        }
+      },
+      "area": 192.0,
+      "areaKind": "referenceFloorArea",
+      "areaKindNational": "de:AN",
+      "references": {
+        "minimumRequirement": 75.0,
+        "meps": 250.0,
+        "nzeb": 45.0,
+        "zeb": 0.0
+      }
+    },
+    "reactsToSignals": true,
+    "lowTemperatureHeating": false,
+    "lowTemperatureHotWater": true,
+    "lowTemperatureCooling": true,
+    "overheatingRisk": {
+      "result": "low",
+      "method": "DIN 4108-2"
+    },
+    "oneStopShop": {
+      "name": "Energieagentur Musterkreis",
+      "url": "https://example.org"
+    },
+    "passportAvailable": true,
+    "recommendations": [
+      {
+        "id": "019a5e00-0000-7000-8000-0000000000b1",
+        "label": "Oberste Geschossdecke dämmen",
+        "measures": [
+          {
+            "label": "24 cm Mineralwolle"
+          }
+        ],
+        "figures": {
+          "class": "E",
+          "classScale": "eu",
+          "primaryEnergy": 160.0,
+          "finalEnergy": 145.0,
+          "emissions": 36.0
+        }
+      }
+    ],
+    "heatNetwork": "planned"
+  },
+  "passport": {
+    "issued": "2026-11-06T12:00:00+01:00",
+    "registrations": [
+      {
+        "scheme": "de:bafa",
+        "value": "ISFP-1 (example)",
+        "time": "2026-11-06T12:30:00+01:00"
+      }
+    ],
+    "visit": "2026-10-14",
+    "current": {
+      "class": "F",
+      "classScale": "de:geg",
+      "primaryEnergy": 182.0,
+      "finalEnergy": 165.0,
+      "emissions": 41.0,
+      "energyCosts": 2860.0
+    },
+    "target": {
+      "class": "A",
+      "classScale": "de:geg",
+      "primaryEnergy": 41.0,
+      "finalEnergy": 28.0,
+      "emissions": 9.0,
+      "renewableShare": 2.4,
+      "selfConsumption": 0.35,
+      "standard": "de:effizienzhaus-70"
+    },
+    "targetYear": 2031,
+    "heatNetwork": "planned",
+    "assumptions": {
+      "prices": [
+        {
+          "carrier": "naturalGas",
+          "perKWh": 0.12,
+          "perYear": 180.0
+        },
+        {
+          "carrier": "electricity",
+          "perKWh": 0.28
+        }
+      ],
+      "increase": 0.03,
+      "method": "DIN V 18599:2018-09",
+      "priceSource": "Annahme des Beispiels"
+    },
+    "oneStopShop": {
+      "name": "Energieagentur Musterkreis"
+    },
+    "steps": [
+      {
+        "id": "019a5e00-0000-7000-8000-000000000020",
+        "label": "Fenster (1985)",
+        "year": 1985,
+        "status": "done",
+        "measures": [
+          {
+            "label": "Fenster mit Isolierverglasung"
+          }
+        ]
+      },
+      {
+        "id": "019a5e00-0000-7000-8000-000000000021",
+        "label": "Maßnahmenpaket 1: Oberste Geschossdecke und Abgleich",
+        "year": 2027,
+        "duration": 2.0,
+        "rationale": "Günstig und ohne Gerüst; senkt die Heizlast vor dem Kesseltausch.",
+        "measures": [
+          {
+            "label": "Oberste Geschossdecke mit 24 cm dämmen",
+            "description": "Mineralwolle zwischen Lagerhölzern, darauf Holzwerkstoffplatten, begehbar",
+            "options": [
+              "Mineralwolle",
+              "Holzfaser",
+              "Zellulose eingeblasen"
+            ],
+            "requirements": [
+              "Luftdichte Ebene unter der Dämmung herstellen"
+            ],
+            "trades": [
+              "Zimmerer"
+            ],
+            "advantages": [
+              "günstig und ohne Gerüst"
+            ],
+            "disadvantages": [
+              "Dachboden nur noch eingeschränkt als Lager nutzbar"
+            ],
+            "lifetime": 40,
+            "funding": [
+              {
+                "programme": "BEG EM"
+              }
+            ],
+            "costs": {
+              "investment": 4800.0,
+              "anywayCosts": 0.0,
+              "maintenanceYearly": 0.0,
+              "funding": 960.0
+            }
+          },
+          {
+            "label": "Hydraulischer Abgleich",
+            "description": "Voreinstellbare Thermostatventile, Pumpe nach raumweiser Heizlast eingestellt",
+            "requirements": [
+              "Heizlast raumweise berechnet"
+            ],
+            "trades": [
+              "Heizungsbauer"
+            ],
+            "advantages": [
+              "gleichmäßigere Wärme, weniger Pumpenstrom"
+            ],
+            "disadvantages": [
+              "allein spart es wenig"
+            ],
+            "lifetime": 15,
+            "costs": {
+              "investment": 900.0,
+              "maintenanceYearly": 0.0
+            }
+          }
+        ],
+        "figures": {
+          "class": "E",
+          "classScale": "de:geg",
+          "primaryEnergy": 151.0,
+          "finalEnergy": 137.0,
+          "emissions": 34.0,
+          "energyCosts": 2390.0
+        }
+      },
+      {
+        "id": "019a5e00-0000-7000-8000-000000000022",
+        "label": "Maßnahmenpaket 2: Außenwand",
+        "year": 2029,
+        "duration": 4.0,
+        "rationale": "Mit dem fälligen Neuanstrich der Fassade; danach reicht eine kleine Wärmepumpe.",
+        "measures": [
+          {
+            "label": "Außenwand mit 16 cm WDVS dämmen",
+            "description": "Wärmedämmverbundsystem 16 cm mit mineralischem Putz",
+            "options": [
+              "EPS",
+              "Mineralwolle",
+              "Holzfaser"
+            ],
+            "requirements": [
+              "Fensteranschlüsse und Rollladenkästen mitdämmen"
+            ],
+            "trades": [
+              "Stuckateur"
+            ],
+            "advantages": [
+              "das Gerüst für den Neuanstrich ist ohnehin da"
+            ],
+            "disadvantages": [
+              "Dachüberstand muss verlängert werden"
+            ],
+            "lifetime": 40,
+            "funding": [
+              {
+                "programme": "BEG EM"
+              }
+            ],
+            "costs": {
+              "investment": 32000.0,
+              "anywayCosts": 9000.0,
+              "maintenanceYearly": 40.0,
+              "funding": 4600.0
+            }
+          }
+        ],
+        "figures": {
+          "class": "C",
+          "classScale": "de:geg",
+          "primaryEnergy": 98.0,
+          "finalEnergy": 89.0,
+          "emissions": 22.0,
+          "energyCosts": 1640.0
+        }
+      },
+      {
+        "id": "019a5e00-0000-7000-8000-000000000023",
+        "label": "Maßnahmenpaket 3: Wärmepumpe und Photovoltaik",
+        "year": 2030,
+        "until": 2032,
+        "trigger": "wenn der Kessel ausgetauscht werden muss",
+        "duration": 2.0,
+        "rationale": "Erst wenn der Kessel ausfällt: nach den Paketen 1 und 2 reicht dann eine kleine Wärmepumpe, und das Wärmenetz kommt frühestens 2035.",
+        "measures": [
+          {
+            "label": "Luft/Wasser-Wärmepumpe statt Gaskessel",
+            "description": "Luft/Wasser-Wärmepumpe 8 kW, Außengerät an der Nordseite",
+            "requirements": [
+              "Vorlauftemperatur 50 °C nach Paket 2 geprüft"
+            ],
+            "trades": [
+              "Heizungsbauer",
+              "Elektriker"
+            ],
+            "advantages": [
+              "keine fossile Energie mehr im Haus"
+            ],
+            "disadvantages": [
+              "Außengerät braucht Abstand zum Nachbarn"
+            ],
+            "lifetime": 20,
+            "funding": [
+              {
+                "programme": "BEG EM"
+              }
+            ],
+            "costs": {
+              "investment": 29000.0,
+              "anywayCosts": 8000.0,
+              "maintenanceYearly": 250.0
+            }
+          },
+          {
+            "label": "Photovoltaik 8 kWp auf dem Süddach",
+            "description": "8 kWp auf dem Süddach, Wechselrichter im Keller",
+            "requirements": [
+              "Statik des Dachs geprüft"
+            ],
+            "trades": [
+              "Elektriker"
+            ],
+            "advantages": [
+              "deckt einen Teil des Wärmepumpenstroms"
+            ],
+            "disadvantages": [
+              "belegt die Dachfläche für Solarthermie"
+            ],
+            "lifetime": 25,
+            "costs": {
+              "investment": 14000.0,
+              "maintenanceYearly": 120.0
+            }
+          }
+        ],
+        "figures": {
+          "class": "A",
+          "classScale": "de:geg",
+          "primaryEnergy": 41.0,
+          "finalEnergy": 28.0,
+          "emissions": 9.0,
+          "energyCosts": 980.0,
+          "standard": "de:effizienzhaus-70"
+        }
+      }
+    ]
+  },
+  "smartReadiness": {
+    "issued": "2026-11-07T10:00:00+01:00",
+    "value": 0.42
+  },
+  "inspections": [
+    {
+      "issued": "2026-05-04T09:30:00+02:00",
+      "systems": [
+        "019a5e00-0000-7000-8000-00000000001a"
+      ],
+      "kind": "heating",
+      "outcome": "Kessel in Ordnung, Abgasverlust 8 %; Austausch bis 2028 empfohlen"
+    }
+  ]
+}

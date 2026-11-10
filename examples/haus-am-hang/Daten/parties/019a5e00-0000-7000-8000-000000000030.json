@@ -1,0 +1,29 @@
+{
+  "schema": "1.0",
+  "id": "019a5e00-0000-7000-8000-000000000030",
+  "kind": "person",
+  "name": "Erika Beispiel",
+  "roles": [
+    "owner",
+    "client"
+  ],
+  "address": {
+    "street": "Am Hang",
+    "number": "7",
+    "postcode": "88212",
+    "city": "Musterstadt",
+    "country": "DE"
+  },
+  "consents": [
+    {
+      "id": "019a5e00-0000-7000-8000-000000000031",
+      "to": "Zimmerei Muster",
+      "purpose": "Angebot Dämmung oberste Geschossdecke",
+      "documents": [
+        "buildings/",
+        "roadmaps/019a5e00-0000-7000-8000-00000000002c.json"
+      ],
+      "given": "2026-11-06T10:00:00+01:00"
+    }
+  ]
+}
