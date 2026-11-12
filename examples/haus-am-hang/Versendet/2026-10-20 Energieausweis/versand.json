@@ -34,8 +34,8 @@
     }
   ],
   "inputs": {
-    "buildings/019a5e00-0000-7000-8000-000000000002.json": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
-    "project.json": "148de9c5a7a44d19e56cd9ae1a554bf67847afb0c58f6e12fa29ac7ddfca9940"
+    "buildings/019a5e00-0000-7000-8000-000000000002.json": "bf2b3ef4734cfa35700016c22d93c4ce81830bc4f4a649f2062c236d38b13088",
+    "project.json": "9a2feaa6e5207c1f1b11d99d9882751635a96ff565884e8e122e598e435c0873"
   },
   "files": [
     {
@@ -51,5 +51,6 @@
       "mediaType": "application/xml",
       "format": "dibt-geg-2027"
     }
-  ]
+  ],
+  "result": "f3e7b4b4f4a44f03be6949a2734ca9731d86eb13747aad7bd929bdea99f01322"
 }

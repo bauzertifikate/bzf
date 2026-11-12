@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/result.json",
+  "title": "bzf result record",
+  "description": "What a program records of a result, `Ergebnisse/<app>/<title>/ergebnis.json`: the figures it worked out, per state, the documents it worked from, by hash, the method and the program version, how the program was set, and what the method assumed where no input named a value. It is an issue record without the sending: it names no recipient and no person. It lies outside `Daten/` and outside the history, and its program replaces it when it calculates again; a result that an issue names (versand.json `result`) is kept as an object with that issue. A result is current while every document in `inputs` still has the hash named there. Its figures are never part of the model and never inputs to another calculation. This schema describes records of schema version 1.x; a record of another major version is only required to say which.",
+  "x-bzf-status": "draft",
+  "x-bzf-class": "building",
+  "type": "object",
+  "properties": {
+    "schema": { "$ref": "common.json#/$defs/schemaVersion" }
+  },
+  "required": ["schema"],
+  "additionalProperties": true,
+  "if": { "properties": { "schema": { "pattern": "^1\\." } } },
+  "then": {
+    "properties": {
+      "revision": {
+        "description": "The revision it was made from, where the project has a store; null or absent where it has none (a document sent to a service).",
+        "anyOf": [{ "$ref": "common.json#/$defs/hash" }, { "type": "null" }]
+      },
+      "time": { "description": "When it was calculated.", "$ref": "common.json#/$defs/time" },
+      "app": { "description": "The program that calculated it.", "type": "string" },
+      "appVersion": { "type": "string" },
+      "kernelVersion": { "description": "The version of the calculation kernel, where the program has one apart from its own: the same version with the same inputs and choices gives the same figures.", "type": "string" },
+      "type": {
+        "description": "What was calculated: an energy balance, a heating load, a life-cycle assessment, quantities.",
+        "anyOf": [{ "enum": ["energyBalance", "heatLoad", "lifeCycleAssessment", "quantities", "other"] }, { "$ref": "common.json#/$defs/newerValue" }]
+      },
+      "basis": {
+        "description": "How its figures were obtained: `calculated` by an energy balance, or `measured` from metered consumption (EPBD Annex I 1).",
+        "anyOf": [{ "enum": ["calculated", "measured"] }, { "$ref": "common.json#/$defs/newerValue" }]
+      },
+      "method": { "description": "The method and edition the figures come from: \"DIN/TS 18599:2025-10\", \"EN ISO 52000-1:2017\".", "type": "string" },
+      "rules": { "description": "The set of rules the method was applied under (a law with the editions it names), by the id its program gives it: \"gmodg-2027\".", "type": "string" },
+      "roadmap": { "description": "The roadmap whose steps its states are, where it has figures after a step.", "$ref": "common.json#/$defs/id" },
+      "figures": { "description": "The figures as calculated, one entry per state.", "$ref": "common.json#/$defs/figures" },
+      "inputs": {
+        "description": "The documents it was made from, path → the hash of the document's canonical JSON (RFC 8785): the building, the project root, a roadmap for the states after its steps, and the program's own document where its settings lie in one. Only what the calculation read: a document that is not listed does not make the result stale.",
+        "type": "object",
+        "additionalProperties": { "$ref": "common.json#/$defs/hash" }
+      },
+      "choices": {
+        "description": "How the program was set for this calculation, where no document in `inputs` holds it (a request to a service): each setting by the program's id for it and its value. A choice that describes the building is a fact and belongs in the building document, not here.",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "description": "The program's id of the setting: \"partial-heating\".", "type": "string", "minLength": 1 },
+            "value": { "description": "Its value: a string, a number or a boolean." },
+            "label": { "description": "What it is, for people, in the project's language.", "type": "string" }
+          },
+          "required": ["id", "value"],
+          "additionalProperties": true
+        }
+      },
+      "assumptions": {
+        "description": "What the method assumed where no input named a value: a default by kind and year, a standard condition. Text for people in the project's language, so that two results that differ can be compared; a reader shows the list and does not calculate from it. The model never holds these values.",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "quantity": { "description": "What was assumed: \"Verschattungsfaktor der Fenster\".", "type": "string", "minLength": 1 },
+            "value": { "description": "The value used, with its unit, as text: \"0,9\".", "type": "string" },
+            "ref": { "description": "Where the method gives it: the standard and clause, by reference only.", "type": "string" },
+            "item": { "description": "The item of the building it was assumed for, where it is for one.", "$ref": "common.json#/$defs/id" },
+            "state": { "description": "The state it was assumed for, as in `figures`; every state where absent.", "type": "string", "minLength": 1 },
+            "verified": { "description": "Whether its program has checked the value against the method's text.", "type": "boolean" }
+          },
+          "required": ["quantity"],
+          "additionalProperties": true
+        }
+      }
+    },
+    "required": ["time", "figures", "inputs"]
+  }
+}

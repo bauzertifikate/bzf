@@ -69,7 +69,12 @@
           "description": "The revision it was made from.",
           "anyOf": [{ "$ref": "common.json#/$defs/hash" }, { "type": "null" }]
         },
-        "time": { "description": "When it was written.", "$ref": "common.json#/$defs/time" }
+        "time": { "description": "When it was written.", "$ref": "common.json#/$defs/time" },
+        "inputs": {
+          "description": "Draft until spec 1.0. The documents it was made from, path → the hash of the document's canonical JSON, where its writer knows them. The result is then current while each of them still has this hash, whatever else a later revision changed; without the list it is current only at `revision`. A result record (result.json) carries its own list, which is the same.",
+          "type": "object",
+          "additionalProperties": { "$ref": "common.json#/$defs/hash" }
+        }
       },
       "required": ["sha256", "revision"],
       "additionalProperties": true

@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Results beside the model (draft)
+
+- New schema `result.json` for a result record, `Ergebnisse/<app>/<title>/ergebnis.json`: the figures a method
+  worked out per state, the documents they were made from by the hash of their canonical JSON, the method, the
+  program and kernel version, the program's settings (`choices`) and what the method assumed (`assumptions`). Class
+  `building`. README, "Results beside the model", has the rules: who writes it, when it is stale, what it shows.
+- `versand.json`: an issue can name the result it issued (`result`, a hash). The figures' definition moved unchanged
+  to `common.json` `$defs/figures`, which `result.json` shares.
+- `revision.json`: a head's result entry can name the documents the file was made from (`inputs`), so a result is
+  stale only when one of them changed, and not with every later revision.
+- The place for detached signatures over a result record is reserved (`ergebnis.<name>.jws`). No profile yet.
+- Example Haus am Hang: two result records, one behind the certificate and one behind the roadmap. The three issues
+  now name their inputs by the documents' real hashes; in 0.2.0 these were made-up values.
+- `./check.sh` writes canonical JSON (RFC 8785) itself and checks, in the examples, every hash a result or an issue
+  names a document or a result by, that an issue states its result's figures, and that a roadmap's result is
+  calculated by the method the roadmap rests on.
+
 ## 0.2.0 — 2026-11-12
 
 ### A project in one file

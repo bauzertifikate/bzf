@@ -3,17 +3,22 @@
 //! BZF_DOCUMENTS: building/, project/, plan-state/ and plan-import/ contain JSON documents; folders/ contains
 //! project folders with their project file (.bzfproj, or .bzf as edition 0.1 named it), a .bauzertifikate store,
 //! Daten/received.json and Versendet/ issue records.
+//!
+//! In the examples, the result records under Ergebnisse/ and the issues are also checked against the documents they
+//! name by hash, with canonical JSON (RFC 8785) written here from the RFC's text.
 
 use jsonschema::{Draft, Registry, Validator};
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 const BASE: &str = "https://bauzertifikate.de/schema/bzf/1/";
 
-/// The schemas with their status and, for the documents under `Daten/`, their class; the stable ones first.
-const SCHEMAS: [(&str, &str, Option<&str>); 13] = [
+/// The schemas with their status and, for the documents under `Daten/` and the result records, their class; the
+/// stable ones first.
+const SCHEMAS: [(&str, &str, Option<&str>); 14] = [
     ("bzf", "stable", None),
     ("revision", "stable", None),
     ("received", "stable", Some("building")),
@@ -27,6 +32,7 @@ const SCHEMAS: [(&str, &str, Option<&str>); 13] = [
     ("consumption", "draft", Some("building")),
     ("costs", "draft", Some("commercial")),
     ("party", "draft", Some("party")),
+    ("result", "draft", Some("building")),
 ];
 
 /// The schema of a document under `Daten/` by its path, as a reader finds it; none for the apps' own documents.
@@ -223,6 +229,23 @@ fn known_values_are_checked_and_newer_ones_kept() {
         ),
         ("roadmap", roadmap(json!({"op": "split", "target": ID}))),
         ("roadmap", roadmap(json!({"op": "set", "target": ID, "field": "phase", "value": "demolished"}))),
+        // A result: figures per state, the documents it was made from, what was assumed; a newer kind of result kept.
+        (
+            "result",
+            json!({"schema": "1.0", "time": "2026-11-06T10:00:00+01:00", "type": "daylight", "figures": [{"state": "current", "energyNeed": 131}],
+                "inputs": {"buildings/b.json": HASH}, "choices": [{"id": "partial-heating", "value": false}],
+                "assumptions": [{"quantity": "Verschattungsfaktor der Fenster", "value": "0,9", "item": ID}]}),
+        ),
+        ("result", json!({"schema": "2.0", "figures": "elsewhere"})),
+        // An issue names the result it issued, and a head the documents a result file was made from.
+        (
+            "versand",
+            json!({"revision": HASH, "to": "x", "time": "2026-11-06T10:00:00+01:00", "files": [], "result": HASH}),
+        ),
+        (
+            "revision#/$defs/head",
+            json!({"device": "d", "app": "aufmass", "results": {"Aufmass/mengen.xlsx": {"sha256": HASH, "revision": HASH, "inputs": {"buildings/b.json": HASH}}}}),
+        ),
     ];
     for (target, doc) in valid {
         let errors = s.errors(target, &doc);
@@ -253,6 +276,23 @@ fn known_values_are_checked_and_newer_ones_kept() {
         ),
         ("building", json!({"schema": "1.1", "id": ID, "systems": [{"id": ID, "carrier": "naturalGas"}]})),
         ("building", json!({"schema": "1.1", "id": ID, "systems": [{"id": ID, "kind": "boiler", "coverage": 1.5}]})),
+        ("result", json!({"schema": "1.0", "time": "2026-11-06T10:00:00+01:00", "figures": [{"state": "current"}]})),
+        (
+            "result",
+            json!({"schema": "1.0", "time": "2026-11-06T10:00:00+01:00", "figures": [{"energyNeed": 131}], "inputs": {}}),
+        ),
+        (
+            "result",
+            json!({"schema": "1.0", "time": "2026-11-06T10:00:00+01:00", "figures": [], "inputs": {"buildings/b.json": "b"}}),
+        ),
+        (
+            "result",
+            json!({"schema": "1.0", "time": "2026-11-06T10:00:00+01:00", "figures": [], "inputs": {}, "assumptions": [{"value": "0,9"}]}),
+        ),
+        (
+            "versand",
+            json!({"revision": HASH, "to": "x", "time": "2026-11-06T10:00:00+01:00", "files": [], "result": "Bilanz"}),
+        ),
         ("roadmap", roadmap(json!({"op": "set", "target": ID, "value": 1}))),
         ("roadmap", roadmap(json!({"op": "add", "into": ID, "list": "systems", "item": {"kind": "heatPump"}}))),
         ("costs", json!({"schema": "1.0", "id": ID, "measures": []})),
@@ -270,6 +310,8 @@ fn known_values_are_checked_and_newer_ones_kept() {
 /// The example projects in examples, each a project folder as a reader sees it without the store: its project file,
 /// the documents under `Daten/` by their path, and its issues. Every id a roadmap's measures and costs refer to is one
 /// the project has, or one an earlier change added, and no building holds what a planned step is still to add.
+/// Nothing in an example changed after its results and issues were made, so each names its documents as they lie,
+/// by the hash of their canonical JSON; and an issue that names a result states that result's figures.
 #[test]
 fn the_examples() {
     let s = Schemas::new();
@@ -283,6 +325,7 @@ fn the_examples() {
             checked += 1;
             errors.extend(s.errors(target, doc).into_iter().map(|e| format!("{} as {target}: {e}", path.display())));
         };
+        let mut unmatched = Vec::new();
         let markers = project_files(&project);
         for file in &markers {
             check("bzf", file, &read(file));
@@ -296,9 +339,34 @@ fn the_examples() {
             check(schema, &file, &doc);
             documents.insert(path, doc);
         }
-        for issue in subfolders(&project.join("Versendet")) {
-            check("versand", &issue.join("versand.json"), &read(&issue.join("versand.json")));
+        // The result records, by the hash an issue names them by.
+        let mut results = BTreeMap::new();
+        for file in all_files(&project.join("Ergebnisse")) {
+            if file.file_name().is_some_and(|name| name == "ergebnis.json") {
+                let doc = read(&file);
+                check("result", &file, &doc);
+                unmatched
+                    .extend(stale(&doc, &documents).into_iter().map(|p| format!("{}: {p} changed", file.display())));
+                unmatched
+                    .extend(not_the_roadmaps(&doc, &documents).into_iter().map(|e| format!("{}: {e}", file.display())));
+                results.insert(hash(&doc), doc);
+            }
         }
+        for issue in subfolders(&project.join("Versendet")) {
+            let file = issue.join("versand.json");
+            let doc = read(&file);
+            check("versand", &file, &doc);
+            unmatched.extend(stale(&doc, &documents).into_iter().map(|p| format!("{}: {p} changed", file.display())));
+            if let Some(named) = doc.get("result").and_then(Value::as_str) {
+                match results.get(named) {
+                    Some(result) => unmatched.extend(
+                        not_as_calculated(&doc, result).into_iter().map(|e| format!("{}: {e}", file.display())),
+                    ),
+                    None => unmatched.push(format!("{}: names a result the project does not hold", file.display())),
+                }
+            }
+        }
+        errors.extend(unmatched);
         // The examples are written as this edition says: one project file, under its current name.
         if markers.len() != 1 || markers[0].extension().is_none_or(|e| e != "bzfproj") {
             errors.push(format!("{}: not exactly one project file <Name>.bzfproj", project.display()));
@@ -308,6 +376,175 @@ fn the_examples() {
     }
     assert!(errors.is_empty(), "{} invalid:\n{}", errors.len(), errors.join("\n"));
     assert!(checked > 0, "no examples");
+}
+
+/// `value` as canonical JSON (RFC 8785), the form a document's hash is taken of: object keys sorted by their UTF-16
+/// code units, no whitespace, numbers as ECMAScript writes them, strings with JSON's shortest escapes.
+fn canonical(value: &Value) -> String {
+    match value {
+        Value::Number(n) => n.as_f64().map_or_else(|| n.to_string(), number),
+        Value::Array(items) => format!("[{}]", items.iter().map(canonical).collect::<Vec<_>>().join(",")),
+        Value::Object(map) => {
+            let mut entries: Vec<_> = map.iter().collect();
+            entries.sort_by(|a, b| a.0.encode_utf16().cmp(b.0.encode_utf16()));
+            let entries = entries.iter().map(|(k, v)| format!("{}:{}", canonical(&json!(k)), canonical(v)));
+            format!("{{{}}}", entries.collect::<Vec<_>>().join(","))
+        }
+        // serde_json writes null, true, false and strings as RFC 8785 asks: only `"`, `\` and the control characters
+        // escaped, the latter as \b, \t, \n, \f, \r or \u00xx in lower case.
+        other => other.to_string(),
+    }
+}
+
+/// A finite double as ECMAScript's `Number.prototype.toString` writes it: the shortest digits that read back as the
+/// same double, plain from 1e-6 up to 1e21 and in exponent form outside. (Where two shortest digit strings are equally
+/// near, ECMAScript takes the even one and Rust the upper; no number in a building document comes near that.)
+fn number(x: f64) -> String {
+    if x == 0.0 {
+        return "0".into();
+    }
+    let text = format!("{:e}", x.abs());
+    let (mantissa, exponent) = text.split_once('e').unwrap();
+    let digits: String = mantissa.chars().filter(|c| *c != '.').collect();
+    // The value is 0.digits × 10^n, digits being k long.
+    let (k, n) = (digits.len() as i32, exponent.parse::<i32>().unwrap() + 1);
+    let body = if k <= n && n <= 21 {
+        format!("{digits}{}", "0".repeat((n - k) as usize))
+    } else if 0 < n && n <= 21 {
+        format!("{}.{}", &digits[..n as usize], &digits[n as usize..])
+    } else if -6 < n && n <= 0 {
+        format!("0.{}{digits}", "0".repeat(-n as usize))
+    } else {
+        let point = if k > 1 { "." } else { "" };
+        format!("{}{point}{}e{}{}", &digits[..1], &digits[1..], if n > 0 { "+" } else { "" }, n - 1)
+    };
+    format!("{}{body}", if x < 0.0 { "-" } else { "" })
+}
+
+/// The hash a document is named by: the SHA-256 of its canonical JSON.
+fn hash(doc: &Value) -> String {
+    Sha256::digest(canonical(doc).as_bytes()).iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+/// The inputs of a result or an issue that are no longer the project's documents: changed since, or gone. A result is
+/// current while there are none, whatever else in the project changed.
+fn stale(record: &Value, documents: &BTreeMap<String, Value>) -> Vec<String> {
+    let inputs = record["inputs"].as_object().into_iter().flatten();
+    let changed = inputs.filter(|(path, named)| documents.get(*path).map(hash).as_deref() != named.as_str());
+    changed.map(|(path, _)| path.clone()).collect()
+}
+
+/// Where an issue does not state the result it names: a figure the issue states for a state is the result's figure
+/// for it, the result's inputs are among the issue's, and both name the same method, basis and kernel version.
+fn not_as_calculated(issue: &Value, result: &Value) -> Vec<String> {
+    let mut errors = Vec::new();
+    let calculated = |state: &Value| result["figures"].as_array().into_iter().flatten().find(|f| &f["state"] == state);
+    for issued in issue["figures"].as_array().into_iter().flatten() {
+        let Some(figures) = calculated(&issued["state"]) else {
+            errors.push(format!("the result has no figures for {}", issued["state"]));
+            continue;
+        };
+        for (key, value) in issued.as_object().into_iter().flatten() {
+            if figures.get(key) != Some(value) {
+                errors.push(format!("{} {key}: issued {value}, calculated {:?}", issued["state"], figures.get(key)));
+            }
+        }
+    }
+    for (path, named) in result["inputs"].as_object().into_iter().flatten() {
+        if issue["inputs"].get(path) != Some(named) {
+            errors.push(format!("the result was made from another {path}"));
+        }
+    }
+    for key in ["method", "basis", "kernelVersion"] {
+        if issue.get(key).is_some() && result.get(key).is_some() && issue[key] != result[key] {
+            errors.push(format!("{key}: issued {}, calculated {}", issue[key], result[key]));
+        }
+    }
+    errors
+}
+
+/// Where a result of a roadmap is not that roadmap's: the roadmap is one of its inputs, a state it has figures for is
+/// the building as it stands, the target or one of the roadmap's steps, and it was calculated by the method the
+/// roadmap rests on.
+fn not_the_roadmaps(result: &Value, documents: &BTreeMap<String, Value>) -> Vec<String> {
+    let Some(id) = result.get("roadmap").and_then(Value::as_str) else { return Vec::new() };
+    let path = format!("roadmaps/{id}.json");
+    let (Some(roadmap), true) = (documents.get(&path), result["inputs"].get(&path).is_some()) else {
+        return vec![format!("{path} is not among its inputs")];
+    };
+    let mut errors = Vec::new();
+    let steps: Vec<&Value> = roadmap["steps"].as_array().into_iter().flatten().map(|step| &step["id"]).collect();
+    for figures in result["figures"].as_array().into_iter().flatten() {
+        let state = &figures["state"];
+        if state != "current" && state != "target" && !steps.contains(&state) {
+            errors.push(format!("figures for {state}, which is no step of the roadmap"));
+        }
+    }
+    let planned = &roadmap["assumptions"]["method"];
+    if planned.is_string() && result.get("method").is_some() && planned != &result["method"] {
+        errors.push(format!("calculated by {}, the roadmap rests on {planned}", result["method"]));
+    }
+    errors
+}
+
+/// Canonical JSON against the example of RFC 8785 (section 3.2.2 and 3.2.3) and the number forms a document meets.
+#[test]
+fn canonical_json_is_the_rfcs() {
+    let source = r#"{
+        "numbers": [333333333.33333329, 1E30, 4.50, 2e-3, 0.000000000000000000000000001],
+        "string": "\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/",
+        "literals": [null, true, false]
+    }"#;
+    let expected = r#"{"literals":[null,true,false],"numbers":[333333333.3333333,1e+30,4.5,0.002,1e-27],"string":"€$\u000f\nA'B\"\\\\\"/"}"#;
+    assert_eq!(canonical(&serde_json::from_str(source).unwrap()), expected);
+    // Keys in UTF-16 order (RFC 8785, 3.2.3), not in UTF-8 order: U+10000 sorts before U+FB33.
+    let keys = json!({"\u{20ac}": 1, "\r": 2, "\u{fb33}": 3, "1": 4, "\u{1f600}": 5, "\u{80}": 6, "\u{f6}": 7});
+    assert_eq!(canonical(&keys), "{\"\\r\":2,\"1\":4,\"\u{80}\":6,\"ö\":7,\"€\":1,\"😀\":5,\"\u{fb33}\":3}");
+    // A whole number is written without a fraction, however the document wrote it.
+    let numbers = json!([6.0, 6, -0.0, 0.035, 1e21, 1e-7, 123456789012345680000.0, -2.5e-6, 5291300.0]);
+    assert_eq!(canonical(&numbers), "[6,6,0,0.035,1e+21,1e-7,123456789012345680000,-0.0000025,5291300]");
+}
+
+/// A result is current while the documents it was made from are unchanged, whatever else in the project changes.
+#[test]
+fn a_result_is_stale_once_one_of_its_inputs_changes() {
+    let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples/haus-am-hang");
+    let daten = project.join("Daten");
+    let path = |file: &Path| file.strip_prefix(&daten).unwrap().to_string_lossy().replace('\\', "/");
+    let documents: BTreeMap<String, Value> = all_files(&daten).iter().map(|file| (path(file), read(file))).collect();
+    let balance = read(&project.join("Ergebnisse/Energieberatung/Energieausweis/ergebnis.json"));
+    let roadmap = read(&project.join("Ergebnisse/Energieberatung/Sanierungsfahrplan/ergebnis.json"));
+    let key = |folder: &str| documents.keys().find(|p| p.starts_with(folder)).unwrap().clone();
+    assert!(stale(&balance, &documents).is_empty() && stale(&roadmap, &documents).is_empty());
+
+    // A document neither was made from changes: both stay current.
+    let mut later = documents.clone();
+    later.get_mut(&key("consumption/")).unwrap()["note"] = json!("Zähler getauscht");
+    assert!(stale(&balance, &later).is_empty() && stale(&roadmap, &later).is_empty());
+
+    // The roadmap changes: its result is stale, the balance of the building as it stands is not.
+    later.get_mut(&key("roadmaps/")).unwrap()["label"] = json!("Fahrplan 2027");
+    assert!(stale(&balance, &later).is_empty());
+    assert_eq!(stale(&roadmap, &later), [key("roadmaps/")]);
+
+    // The building changes: both are stale and name the building.
+    let mut later = documents.clone();
+    later.get_mut(&key("buildings/")).unwrap()["airtightness"]["n50"] = json!(4.5);
+    assert_eq!(stale(&balance, &later), [key("buildings/")]);
+    assert_eq!(stale(&roadmap, &later), [key("buildings/")]);
+
+    // The same document written another way (key order, 6.0 for 6) is the same input.
+    let mut later = documents.clone();
+    let building = later.get_mut(&key("buildings/")).unwrap();
+    let mut keys: Vec<_> = building.as_object().unwrap().clone().into_iter().collect();
+    keys.reverse();
+    *building = Value::Object(keys.into_iter().collect());
+    building["airtightness"]["n50"] = json!(6);
+    assert!(stale(&balance, &later).is_empty());
+
+    // A document that is gone makes its results stale.
+    later.remove(&key("roadmaps/"));
+    assert_eq!(stale(&roadmap, &later), [key("roadmaps/")]);
 }
 
 /// The project files directly in `dir`: `<Name>.bzfproj`, and `<Name>.bzf` as edition 0.1 named it. A `.bzf` that does

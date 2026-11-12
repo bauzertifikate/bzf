@@ -115,7 +115,8 @@ data file is named only by `"format": "bafa-isfp"`.
 ## What the format leaves to others
 
 - **The methods.** How DIN V 18599 or DIN/TS 18599 balance a building, and BAFA's rating rules and correction
-  factors, are not in the format. What a method assumes for an item (a default by kind and year) is never stored.
+  factors, are not in the format. What a method assumes for an item (a default by kind and year) is never stored in the model; a result record names
+  what its method assumed (`result.json` `assumptions`).
 - **The issued formats.** DIBt's certificate data (unpublished for 2027), BAFA's iSFP data (not public) and GAEB
   belong to their owners. bzf keeps their files and names them.
 - **Advice and law.** National requirements, one-stop-shop contacts, benefit texts and the one-stop shop's own

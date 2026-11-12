@@ -1,0 +1,83 @@
+{
+  "schema": "1.0",
+  "revision": "2b214ddf3326016519afcb268f63623b80b91a65265277668e4d020d87dd9078",
+  "time": "2026-11-06T11:30:00+01:00",
+  "app": "Energieberatung",
+  "appVersion": "0.9.0",
+  "kernelVersion": "0.4.0",
+  "type": "energyBalance",
+  "basis": "calculated",
+  "method": "DIN V 18599:2018-09",
+  "roadmap": "019a5e00-0000-7000-8000-00000000002c",
+  "figures": [
+    {
+      "state": "current",
+      "primaryEnergy": 182,
+      "finalEnergy": 165,
+      "emissions": 41,
+      "energyCosts": {
+        "amount": 2860
+      }
+    },
+    {
+      "state": "019a5e00-0000-7000-8000-000000000021",
+      "primaryEnergy": 151,
+      "finalEnergy": 137,
+      "emissions": 34,
+      "energyCosts": {
+        "amount": 2390
+      }
+    },
+    {
+      "state": "019a5e00-0000-7000-8000-000000000022",
+      "primaryEnergy": 98,
+      "finalEnergy": 89,
+      "emissions": 22,
+      "energyCosts": {
+        "amount": 1640
+      }
+    },
+    {
+      "state": "019a5e00-0000-7000-8000-000000000023",
+      "primaryEnergy": 41,
+      "finalEnergy": 28,
+      "emissions": 9,
+      "energyCosts": {
+        "amount": 980
+      },
+      "standard": "de:effizienzhaus-70"
+    },
+    {
+      "state": "target",
+      "primaryEnergy": 41,
+      "finalEnergy": 28,
+      "emissions": 9,
+      "standard": "de:effizienzhaus-70"
+    }
+  ],
+  "inputs": {
+    "buildings/019a5e00-0000-7000-8000-000000000002.json": "bf2b3ef4734cfa35700016c22d93c4ce81830bc4f4a649f2062c236d38b13088",
+    "project.json": "9a2feaa6e5207c1f1b11d99d9882751635a96ff565884e8e122e598e435c0873",
+    "roadmaps/019a5e00-0000-7000-8000-00000000002c.json": "f48e63945c9af1773dff521ac8a8049ed214792df81d33c9dc5e5d4478831abd"
+  },
+  "choices": [
+    {
+      "id": "partial-heating",
+      "value": false,
+      "label": "Teilbeheizung"
+    }
+  ],
+  "assumptions": [
+    {
+      "quantity": "Wärmebrückenzuschlag",
+      "value": "pauschal, ohne Nachweis",
+      "ref": "DIN V 18599-2"
+    },
+    {
+      "quantity": "Jahresarbeitszahl der Wärmepumpe",
+      "value": "nach Bauart und Vorlauftemperatur, ohne Herstellerangabe",
+      "ref": "DIN V 18599-5",
+      "state": "019a5e00-0000-7000-8000-000000000023"
+    }
+  ]
+}

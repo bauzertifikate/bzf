@@ -22,6 +22,7 @@ maps the building data to EPBD and iSFP information requirements. The EPBD datas
 | [`revision.json`](schema/bzf/1/revision.json) | A revision in the store, with the roadmap steps it carried into the building; under `$defs` a writer's head (with the results it wrote) and a device's record | stable |
 | [`received.json`](schema/bzf/1/received.json) | The files received into `Zeichnungen/`, `Fotos/`, `Dokumente/`, by hash | stable |
 | [`versand.json`](schema/bzf/1/versand.json) | What an issue in `Versendet/` records beside its files | stable |
+| [`result.json`](schema/bzf/1/result.json) | A result record `Ergebnisse/<app>/<title>/ergebnis.json`: the figures a method worked out, the documents they were made from, the program and kernel version, its settings and what the method assumed | draft |
 | [`project.json`](schema/bzf/1/project.json) | The root document: the frame (north, origin, CRS, NHN datum), buildings, plan states | stable |
 | [`common.json`](schema/bzf/1/common.json) | Ids, hashes, times, dates, versions, points, open values, sources, constructions, products, identifiers, addresses, carriers, services, money, document classes, conflicts | stable |
 | [`building.json`](schema/bzf/1/building.json) | A building `buildings/<id>.json`: identifiers, address, year, use; parts, storeys, walls, spaces, slabs, openings (with Uw, g, glazing), roofs, elements, neighbours; its technical building systems | draft |
@@ -41,7 +42,8 @@ Each schema's `$id` is its place under `https://bauzertifikate.de/schema/bzf/1/`
 that path), its `x-bzf-status` says whether it is stable or a draft, and a document's `x-bzf-class` says where it may
 go. The schemas are JSON Schema 2020-12. A reader finds a document's schema by its path under `Daten/`: `project.json`,
 `received.json`, `buildings/`, `plans/`, `imports/`, `roadmaps/`, `costs/`, `consumption/`, `parties/`; any other
-path is an app's own document.
+path is an app's own document. Outside `Daten/`, a file named `versand.json` in a folder of `Versendet/` is an issue
+record, and a file named `ergebnis.json` under `Ergebnisse/` is a result record.
 
 ## A document, a file, a folder
 
@@ -83,7 +85,8 @@ canonical JSON, revisions, heads, merge, received files), the project as one `.b
 and issued documents (which revision, which kernel version, to whom), and the rules that turn a building document's
 walls, slabs, roof plates and openings into solids ([SOLIDS.md](SOLIDS.md), a draft; the solids themselves are
 derived and never stored). Not in it: our kernel and the builders that
-derive figures from the model (envelope, areas, quantities, U-values, the DIN/TS 18599 balance are never stored), the
+derive figures from the model (envelope, areas, quantities, U-values, the DIN/TS 18599 balance are never stored in
+the model), the
 apps' own documents (`energieberatung/…`, `aufmass/…`: reserved, kept unchanged by others, not described), the
 contents of issued files (their formats are GAEB's, DIBt's, BAFA's), sync, server, accounts and AI. Overrides are
 described as opaque data.
@@ -129,6 +132,30 @@ So every program that works on a project can add to it, whatever it reads of it.
   passport lies in `Versendet/` with its files, its registration and the figures it states, tied to the revision and
   the inputs it was made from, and a certificate received from someone else is a received file of type `certificate`.
   An issue's figures record that document. They are not inputs to another calculation.
+- **Results beside the model** (a draft). A program that keeps what a method worked out writes a result record,
+  `Ergebnisse/<app>/<title>/ergebnis.json` ([`result.json`](schema/bzf/1/result.json)): the figures per state, the
+  documents they were made from (path → the hash of the document's canonical JSON), the method, the program and
+  kernel version, how the program was set (`choices`) and what the method assumed where the model was silent
+  (`assumptions`). Its program replaces it whenever it calculates again; nothing else writes it, and no document
+  under `Daten/` refers to it.
+  - **Current or stale.** A result is current while each document it names still has the hash it names, whatever
+    else in the project changed since. Any reader can tell this without the program that wrote the result. A result
+    that names no documents is current only at its revision.
+  - **Three places for a value.** A fact about the building is in the building document. A setting of the program
+    is in the program's own document, which the result then names among its inputs, or in the result's `choices`.
+    A value the method took because the model had none is in the result's `assumptions`, in words, for people to
+    read and not for another program to calculate with.
+  - **Issued.** An issue names the result it issued by the hash of its canonical JSON (`versand.json` `result`), and
+    that record is then kept as an object with the issue, as the issue's inputs are. The issue's figures are that
+    result's figures.
+  - **What a result shows.** That nothing changed since it was written (the hashes), and what it was made from and
+    with. A program of the same version gives the same figures from the same inputs; another version or another
+    program may differ within the method's tolerance. A result record does not show that its figures are right.
+  - **Signatures (reserved, not specified).** A file `ergebnis.<name>.jws` beside a result record is reserved for a
+    detached signature over that record's canonical JSON; several may lie beside one record. The profile is to
+    follow JAdES (ETSI TS 119 182-1) and is written down once an implementation signs and verifies. A signature
+    states who signed, and nothing about that person's or organisation's entitlement to issue. Until the profile
+    is specified, a reader ignores these files and a writer that replaces a result record removes them.
 - **One state.** A building document describes the building as it stands, in every revision. Work under way belongs
   to that state: an item's `phase` says whether it stands and stays (`existing`), stands and is being removed
   (`demolished`) or is being built (`new`: a building in planning, an extension under construction). What is planned
@@ -154,7 +181,8 @@ So every program that works on a project can add to it, whatever it reads of it.
 Every document under `Daten/` has a class (`x-bzf-class` in its schema; the apps' own documents by the root's
 `classes`):
 
-- **building**: the building, its plan states and imports, roadmaps, consumption, received files. Shared with another
+- **building**: the building, its plan states and imports, roadmaps, consumption, received files, result records.
+  Shared with another
   organisation only with the owner's consent, which the issue that passes them on names (`versand.json` `consent`).
   Even these can be personal data: a home's address, plans, photos and consumption relate to the people living in it.
 - **party**: people and organisations, their contacts and consents. Never leaves the organisation that holds it.
