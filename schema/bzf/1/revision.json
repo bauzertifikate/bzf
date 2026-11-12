@@ -30,7 +30,12 @@
       "account": { "description": "The account it was written for, where there is one: an opaque id.", "type": "string" },
       "organisation": { "description": "The organisation it was written for, where there is one: an opaque id.", "type": "string" },
       "time": { "description": "When it was written.", "$ref": "common.json#/$defs/time" },
-      "message": { "description": "What was done: \"Planstand 2 eingelesen\".", "type": "string" }
+      "message": { "description": "What was done: \"Planstand 2 eingelesen\".", "type": "string" },
+      "appliedSteps": {
+        "description": "Draft until spec 1.0. The roadmap steps this revision carried into the building, by their ids: it marks each step done and applies the step's changes to the building document (roadmap.json; README, \"How the documents are written\"). The building before a step is the one in this revision's parent.",
+        "type": "array",
+        "items": { "$ref": "common.json#/$defs/id" }
+      }
     },
     "required": ["tree"]
   },

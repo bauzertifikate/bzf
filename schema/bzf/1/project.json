@@ -18,7 +18,7 @@
       "type": "object",
       "properties": {
         "schema": { "$ref": "common.json#/$defs/schemaVersion" },
-        "id": { "description": "The project's id, as its `.bzf` says.", "$ref": "common.json#/$defs/id" },
+        "id": { "description": "The project's id, as its project file says.", "$ref": "common.json#/$defs/id" },
         "frame": { "$ref": "#/$defs/frame" },
         "language": {
           "description": "The language of the project's free text (labels, names, notes, descriptions, reasons), as a BCP 47 tag: \"de\", \"de-AT\". Keys and listed values are English in every language; only what people write is in this one.",

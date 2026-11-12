@@ -7,7 +7,8 @@ implementations, contributions and forks. Using BZF does not require a Bauzertif
 This is the canonical repository for the specification, JSON Schemas, fictional examples and conformance tests.
 The schemas are the source of truth; implementations derive their own calculation models from them.
 
-**Specification edition: 0.1.0 (initial public release).** The document schemas describe BZF 1.x. Some schemas are
+**Specification edition: 0.1.0 (initial public release).** `main` also holds the changes for edition 0.2.0, which
+is not released yet; [CHANGELOG.md](CHANGELOG.md) lists them. The document schemas describe BZF 1.x. Some schemas are
 stable and others are drafts, as listed below. Drafts can still change incompatibly before specification 1.0;
 stable schemas retain their compatibility promise. Pin a release tag or commit for reproducible integrations.
 See [VERSIONING.md](VERSIONING.md) for versioning and compatibility, and [CONTRIBUTING.md](CONTRIBUTING.md) to contribute.
@@ -17,8 +18,8 @@ maps the building data to EPBD and iSFP information requirements. The EPBD datas
 
 | Schema | What | Status |
 |---|---|---|
-| [`bzf.json`](schema/bzf/1/bzf.json) | The `<Name>.bzf` that opens a project | stable |
-| [`revision.json`](schema/bzf/1/revision.json) | A revision in the store; under `$defs` a writer's head (with the results it wrote) and a device's record | stable |
+| [`bzf.json`](schema/bzf/1/bzf.json) | The project file `<Name>.bzfproj` that marks a project folder | stable |
+| [`revision.json`](schema/bzf/1/revision.json) | A revision in the store, with the roadmap steps it carried into the building; under `$defs` a writer's head (with the results it wrote) and a device's record | stable |
 | [`received.json`](schema/bzf/1/received.json) | The files received into `Zeichnungen/`, `Fotos/`, `Dokumente/`, by hash | stable |
 | [`versand.json`](schema/bzf/1/versand.json) | What an issue in `Versendet/` records beside its files | stable |
 | [`project.json`](schema/bzf/1/project.json) | The root document: the frame (north, origin, CRS, NHN datum), buildings, plan states | stable |
@@ -42,20 +43,54 @@ go. The schemas are JSON Schema 2020-12. A reader finds a document's schema by i
 `received.json`, `buildings/`, `plans/`, `imports/`, `roadmaps/`, `costs/`, `consumption/`, `parties/`; any other
 path is an app's own document.
 
+## A document, a file, a folder
+
+BZF data comes in three forms. The documents are the same in all three.
+
+| Form | What it is | What it is for |
+|---|---|---|
+| A document | One JSON document that is valid against its schema: a building, a roadmap | A request to a service, a tool, a test |
+| A `.bzf` file | A whole project in one file, `Haus am Hang.bzf`: a ZIP archive of the project folder | Handing a building over, uploading it, archiving it |
+| A project folder | The documents under `Daten/`, the received files, the issues, the results and the store, marked by its project file `<Name>.bzfproj` | Working on a project, alone or with several apps and devices |
+
+The project folder is what the schemas above describe and what the example shows. The `.bzf` file is a draft until
+an implementation writes and reads it. Its rules:
+
+- **Container.** A ZIP archive within the limits of ISO/IEC 21320-1: each entry stored or deflated, no encryption,
+  no split archives, names in UTF-8 with `/` between their parts.
+- **Contents.** The project folder's contents lie at the archive's root, without a folder around them: exactly one
+  project file `*.bzfproj`, `Daten/`, and the other folders as far as they are passed on. The project's name is the
+  `.bzf` file's own name, and an app that unpacks the file names the project file after it.
+- **With or without history.** With the store, the file is a full copy of the project and its history. Without it,
+  the file is a snapshot: the documents as they are, and no earlier state.
+- **Reading.** A reader takes the documents from `Daten/` in the archive, as it does in a folder. It MUST refuse an
+  entry whose name is absolute or has a `..` part, and MUST NOT write outside the folder it unpacks into.
+- **Writing.** A `.bzf` file is written whole and never changed in place. Work happens in a project folder: an app
+  unpacks the file into one and packs a new file from it.
+- **Passing on.** A `.bzf` file that leaves the organisation is a share ("Privacy"): it holds only documents and
+  files of the class `building`, and no store, because the store's objects include every document the project ever
+  held, those about people and money too.
+
+Project folders written under edition 0.1 have their project file as `<Name>.bzf`. A reader accepts both names and
+tells such a file from an archive by its first bytes: the project file is JSON and starts with `{`, an archive
+starts with `PK`. A writer names a new project's file `<Name>.bzfproj` and renames an older one with the next
+revision it writes, never on opening.
+
 ## Scope
 
-In the spec: the building model's documents, the project folder with its `.bzf` and its store (objects, canonical
-JSON, revisions, heads, merge, received files), and the envelope of results and issued documents (which revision,
-which kernel version, to whom). Not in it: our kernel and the builders that derive figures from the model (envelope,
-areas, quantities, U-values, the DIN/TS 18599 balance are never stored), the apps' own documents (`energieberatung/…`,
-`aufmass/…`: reserved, kept unchanged by others, not described), the contents of issued files (their formats are
-GAEB's, DIBt's, BAFA's), sync, server, accounts and AI. Overrides are described as opaque data.
+In the spec: the building model's documents, the project folder with its project file and its store (objects,
+canonical JSON, revisions, heads, merge, received files), the project as one `.bzf` file, and the envelope of results
+and issued documents (which revision, which kernel version, to whom). Not in it: our kernel and the builders that
+derive figures from the model (envelope, areas, quantities, U-values, the DIN/TS 18599 balance are never stored), the
+apps' own documents (`energieberatung/…`, `aufmass/…`: reserved, kept unchanged by others, not described), the
+contents of issued files (their formats are GAEB's, DIBt's, BAFA's), sync, server, accounts and AI. Overrides are
+described as opaque data.
 
-Conformance comes in three levels: a **reader** reads `Daten/` and the `.bzf`, validates against
-these schemas and ignores what it doesn't know; a **store reader** also reads revisions and objects and checks each
-object against its hash; a **writer** writes on a head of its own, keeps unknown fields and values, and merges by the
-spec's rules. The rules of levels 2 and 3 are to be written down in the specification text; the schemas here describe
-the files.
+Conformance comes in three levels: a **reader** reads `Daten/` and the project file, from a folder or a `.bzf` file,
+validates against these schemas and ignores what it doesn't know; a **store reader** also reads revisions and objects
+and checks each object against its hash; a **writer** writes on a head of its own, keeps unknown fields and values,
+and merges by the spec's rules. The rules of levels 2 and 3 are to be written down in the specification text; the
+schemas here describe the files.
 
 ## How the documents are written
 
@@ -80,9 +115,29 @@ the files.
 - **Conflicts.** The store's merge keeps a value two writers changed differently as `{"$conflict": {"base", "values"}}`
   in place of the value. A document holding conflicts is validated as the apps read it: each conflict settled by its
   first value.
+- **Facts, not results.** The model stores facts about the building, as entered or received. What a method works out
+  from them is never stored in it, by any app: areas, quantities, the U-value of a layered construction, an energy
+  balance, a life-cycle assessment, a roadmap's figures, a rating. A value that a product's data sheet states (a
+  window's Uw, a heat pump's SCOP) is a fact. What was issued is kept as issued: a certificate or a renovation
+  passport lies in `Versendet/` with its files, its registration and the figures it states, tied to the revision and
+  the inputs it was made from, and a certificate received from someone else is a received file of type `certificate`.
+  An issue's figures record that document. They are not inputs to another calculation.
+- **One state.** A building document describes the building as it stands, in every revision. Work under way belongs
+  to that state: an item's `phase` says whether it stands and stays (`existing`), stands and is being removed
+  (`demolished`) or is being built (`new`: a building in planning, an extension under construction). What is planned
+  for later is not in the building document. It lies in a roadmap.
 - **Changes over time.** A renovation roadmap doesn't copy the building per step: each measure lists its changes to
-  the building document (a field set, an item added or removed, by id), and the state after a step is the building
-  with every change up to it applied. Past renovations are steps marked done.
+  the building document (a field set, an item added or removed, by id). Three rules keep a building and its roadmaps
+  in step:
+  1. The state after a planned step is the building document with the changes of every planned step up to it applied
+     in order. A reader that shows a later state derives it this way and never writes it into the building document.
+  2. A writer that marks a step `done` applies the step's changes to the building document in the same revision,
+     after correcting them to what was built. The building is then again as it stands: what the step built is
+     `existing`, and what it removed is no longer in the document. The revision names the step (`appliedSteps`), so
+     its parent holds the building before the step. Where documents are exchanged without a store, the roadmap and
+     the building are written together.
+  3. A reader never applies a done step, whose changes are the record of what was done, nor a declined one.
+     A renovation from before the building was recorded is a done step without changes.
 - **Other major versions.** Each schema describes major version 1 of its document (`"schema": "1.x"`, store format
   `bzf/1.x`). A document or revision of another major version is only required to say which, and a reader opens the
   project read-only.
@@ -114,7 +169,7 @@ These rules apply from specification edition 0.x onward. A reader or writer of b
 4. SHOULD record in the root's `needs` the lowest app version that reads everything in the project, once something
    needs a newer one than the schema versions say.
 
-Versions: the store format (`bzf/1` in the `.bzf` and every revision) changes with the folder or the store; each
+Versions: the store format (`bzf/1` in the project file and every revision) changes with the folder or the store; each
 document's `schema` (`"1.0"`) changes with the document, a minor version only adding; the spec edition (`0.1.0`
 now) changes with the text. A stable schema changes only by additions within its major version.
 
@@ -161,12 +216,14 @@ The tests validate both and check that every example field is declared in the sc
 Attribution for the documentation: Bauzertifikate contributors. The same terms apply to contributions to each part.
 The repository's licences do not change the ownership or licences of real building data stored in BZF files.
 
-BZF is the format's public name; `.bzf` is its file extension. Independent implementations may describe their BZF
-support. Forks should identify their changes and must not imply that they are official Bauzertifikate releases.
+BZF is the format's public name. `.bzf` is the extension of a project in one file, and `.bzfproj` that of a project
+folder's project file. Independent implementations may describe their BZF support. Forks should identify their changes and must not imply that they are official Bauzertifikate releases.
 
 ## Kurzfassung
 
 BZF (Bauzertifikate Format) ist ein offenes, versioniertes Gebäudedatenformat. Es beschreibt Gebäude, Bauteile,
 Anlagentechnik, Sanierungsschritte und ausgestellte Dokumente als JSON. Andere Programme können es unabhängig von
-Bauzertifikate lesen und schreiben. Die Schemas und Beispiele sind frei verfügbar; Beiträge und Forks sind willkommen.
+Bauzertifikate lesen und schreiben. Ein Projekt liegt als Ordner vor oder als einzelne Datei `<Name>.bzf`. Das
+Gebäudedokument beschreibt das Gebäude immer so, wie es steht; geplante Sanierungsschritte stehen im Fahrplan.
+Die Schemas und Beispiele sind frei verfügbar; Beiträge und Forks sind willkommen.
 Die Spezifikation ist noch in Version 0.1.0, mit ausdrücklich gekennzeichneten stabilen und vorläufigen Teilen.

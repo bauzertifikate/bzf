@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://bauzertifikate.de/schema/bzf/1/bzf.json",
   "title": "bzf project file",
-  "description": "The `<Name>.bzf` that opens a project: a one-line JSON object at the top of the project folder, whose file name is the project's name. Written when the project is created and again only when a copy becomes a project of its own. Every store format has `format` and `project`; this schema describes the rest for the store format bzf/1.x. A reader opens a project of a newer major format read-only, never refuses it and never rewrites it.",
+  "description": "The project file `<Name>.bzfproj` that marks a project folder: a one-line JSON object at the top of the folder, whose file name is the project's name. Written when the project is created and again only when a copy becomes a project of its own. Every store format has `format` and `project`; this schema describes the rest for the store format bzf/1.x. A reader opens a project of a newer major format read-only, never refuses it and never rewrites it. A folder written under specification edition 0.1 has it as `<Name>.bzf`, and a reader takes either name; `.bzf` is now the extension of a project as one file (README, \"A document, a file, a folder\").",
   "x-bzf-status": "stable",
   "type": "object",
   "properties": {

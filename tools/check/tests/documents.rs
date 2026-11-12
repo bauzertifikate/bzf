@@ -1,7 +1,8 @@
 //! The BZF schemas: valid JSON Schema 2020-12, open by design, and checked against positive and negative fixtures.
 //! The example projects are always checked. Implementations can additionally provide generated documents through
 //! BZF_DOCUMENTS: building/, project/, plan-state/ and plan-import/ contain JSON documents; folders/ contains
-//! project folders with .bzf files, a .bauzertifikate store, Daten/received.json and Versendet/ issue records.
+//! project folders with their project file (.bzfproj, or .bzf as edition 0.1 named it), a .bauzertifikate store,
+//! Daten/received.json and Versendet/ issue records.
 
 use jsonschema::{Draft, Registry, Validator};
 use serde_json::{Value, json};
@@ -213,6 +214,8 @@ fn known_values_are_checked_and_newer_ones_kept() {
         ("bzf", json!({"format": "bzf/2", "project": "anything a newer store calls an id"})),
         ("revision", json!({"format": "bzf/1.4", "tree": {"buildings/b.json": HASH}, "parents": [], "signature": {}})),
         ("revision", json!({"format": "bzf/2.0", "objects": {}})),
+        // A revision that carried a roadmap step into the building names it.
+        ("revision", json!({"format": "bzf/1", "tree": {"buildings/b.json": HASH}, "appliedSteps": [ID]})),
         // The parts a renovation roadmap and an energy performance certificate take, a newer change and system kept.
         (
             "building",
@@ -241,6 +244,7 @@ fn known_values_are_checked_and_newer_ones_kept() {
         ("bzf", json!({"format": "zip", "project": ID})),
         ("revision", json!({"format": "bzf/1", "parents": []})),
         ("revision", json!({"format": "bzf/1", "tree": {"a.json": "x"}})),
+        ("revision", json!({"format": "bzf/1", "tree": {"buildings/b.json": HASH}, "appliedSteps": ["Schritt 1"]})),
         ("received", json!({"files": [{"id": ID, "name": "eg.dwg", "folder": "Zeichnungen"}]})),
         ("versand", json!({"revision": HASH, "to": "Familie Müller", "time": "gestern", "files": []})),
         (
@@ -263,9 +267,9 @@ fn known_values_are_checked_and_newer_ones_kept() {
     }
 }
 
-/// The example projects in examples, each a project folder as a reader sees it without the store: its `.bzf`, the
-/// documents under `Daten/` by their path, and its issues. Every id a roadmap's measures and costs refer to is one the
-/// project has, or one an earlier change added.
+/// The example projects in examples, each a project folder as a reader sees it without the store: its project file,
+/// the documents under `Daten/` by their path, and its issues. Every id a roadmap's measures and costs refer to is one
+/// the project has, or one an earlier change added, and no building holds what a planned step is still to add.
 #[test]
 fn the_examples() {
     let s = Schemas::new();
@@ -273,15 +277,15 @@ fn the_examples() {
     let mut errors = Vec::new();
     let mut checked = 0;
     // The projects: the folders with a project file (bzf-epbd/ holds the EPBD proposal's files, tests/epbd.rs).
-    let projects =
-        subfolders(&root).into_iter().filter(|p| files(p).iter().any(|f| f.extension().is_some_and(|e| e == "bzf")));
+    let projects = subfolders(&root).into_iter().filter(|p| !project_files(p).is_empty());
     for project in projects {
         let mut check = |target: &str, path: &Path, doc: &Value| {
             checked += 1;
             errors.extend(s.errors(target, doc).into_iter().map(|e| format!("{} as {target}: {e}", path.display())));
         };
-        for file in files(&project).into_iter().filter(|f| f.extension().is_some_and(|e| e == "bzf")) {
-            check("bzf", &file, &read(&file));
+        let markers = project_files(&project);
+        for file in &markers {
+            check("bzf", file, &read(file));
         }
         let daten = project.join("Daten");
         let mut documents = BTreeMap::new();
@@ -295,10 +299,54 @@ fn the_examples() {
         for issue in subfolders(&project.join("Versendet")) {
             check("versand", &issue.join("versand.json"), &read(&issue.join("versand.json")));
         }
+        // The examples are written as this edition says: one project file, under its current name.
+        if markers.len() != 1 || markers[0].extension().is_none_or(|e| e != "bzfproj") {
+            errors.push(format!("{}: not exactly one project file <Name>.bzfproj", project.display()));
+        }
         errors.extend(dangling(&documents).into_iter().map(|e| format!("{}: {e}", project.display())));
+        errors.extend(later_state(&documents).into_iter().map(|e| format!("{}: {e}", project.display())));
     }
     assert!(errors.is_empty(), "{} invalid:\n{}", errors.len(), errors.join("\n"));
     assert!(checked > 0, "no examples");
+}
+
+/// The project files directly in `dir`: `<Name>.bzfproj`, and `<Name>.bzf` as edition 0.1 named it. A `.bzf` that does
+/// not start as a JSON object is a project in one file (an archive) and none of these.
+fn project_files(dir: &Path) -> Vec<PathBuf> {
+    let is_project_file = |file: &PathBuf| match file.extension().and_then(|e| e.to_str()) {
+        Some("bzfproj") => true,
+        Some("bzf") => fs::read(file).is_ok_and(|bytes| bytes.first() == Some(&b'{')),
+        _ => false,
+    };
+    files(dir).into_iter().filter(is_project_file).collect()
+}
+
+/// The items a planned step adds that a building document already holds. The building is the building as it stands,
+/// so what a planned step is still to add is not in it.
+fn later_state(documents: &BTreeMap<String, Value>) -> Vec<String> {
+    let mut held = std::collections::HashSet::new();
+    for (_, doc) in documents.iter().filter(|(p, _)| p.starts_with("buildings/")) {
+        walk(doc, &mut String::new(), &mut |_, v| {
+            if let Some(id) = v.get("id").and_then(Value::as_str) {
+                held.insert(id.to_string());
+            }
+        });
+    }
+    let mut found = Vec::new();
+    for (path, doc) in documents.iter().filter(|(p, _)| p.starts_with("roadmaps/")) {
+        // A step is planned where its status is left out.
+        let planned = |step: &&Value| step.get("status").is_none_or(|s| s.as_str() == Some("planned"));
+        for step in doc["steps"].as_array().into_iter().flatten().filter(planned) {
+            let measures = step["measures"].as_array().into_iter().flatten();
+            for change in measures.flat_map(|m| m["changes"].as_array().into_iter().flatten()) {
+                let added = change["item"]["id"].as_str().filter(|_| change["op"] == "add");
+                if let Some(id) = added.filter(|id| held.contains(*id)) {
+                    found.push(format!("{path}: a planned step adds {id}, which a building already holds"));
+                }
+            }
+        }
+    }
+    found
 }
 
 /// The ids roadmaps and costs refer to that no document of the project has.
@@ -346,7 +394,7 @@ fn all_files(dir: &Path) -> Vec<PathBuf> {
 }
 
 /// Optional implementation-generated documents under `$BZF_DOCUMENTS`: the building model's documents by their schema's name, and the store tests' project folders,
-/// whose own files are checked here (the `.bzf`, the revisions reachable from the heads, the heads, the devices'
+/// whose own files are checked here (the project file, the revisions reachable from the heads, the heads, the devices'
 /// records, `received.json`, `versand.json`). The store's tests stand any JSON in for a building, so the building
 /// model's documents are checked from the separate document fixture directories.
 #[test]
@@ -369,7 +417,7 @@ fn the_documents_our_tests_write() {
     }
     for project in projects(&root.join("folders")) {
         let store = project.join(".bauzertifikate");
-        for file in files(&project).into_iter().filter(|f| f.extension().is_some_and(|e| e == "bzf")) {
+        for file in project_files(&project) {
             check("bzf", &file, &read(&file));
         }
         let mut revisions = Vec::new();
@@ -429,8 +477,8 @@ fn subfolders(dir: &Path) -> Vec<PathBuf> {
     dirs
 }
 
-/// The project folders under `dir`, at any depth: those with a store. (A test also puts a `.bzf` that is no project
-/// file beside them, which the store refuses as foreign.)
+/// The project folders under `dir`, at any depth: those with a store. (A test also puts a file named like a project
+/// file beside them that is none, which the store refuses as foreign.)
 fn projects(dir: &Path) -> Vec<PathBuf> {
     let mut found = Vec::new();
     for sub in subfolders(dir) {

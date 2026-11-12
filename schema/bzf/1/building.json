@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://bauzertifikate.de/schema/bzf/1/building.json",
   "title": "bzf building document",
-  "description": "A building, `buildings/<id>.json`: what a project keeps of a building, which every trade reads and writes, each deriving its own figures from it. It stores what is built: where a wall's reference line runs and where its layers lie, the top of a slab, a roof plate's plane; no module's convention (the envelope's planes, a trade's measuring rule) and nothing that can be worked out again (faces, room figures, quantities). This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
+  "description": "A building, `buildings/<id>.json`: what a project keeps of a building, which every trade reads and writes, each deriving its own figures from it. It stores what is built: where a wall's reference line runs and where its layers lie, the top of a slab, a roof plate's plane; no module's convention (the envelope's planes, a trade's measuring rule) and nothing that can be worked out again (faces, room figures, quantities). It is the building as it stands and holds no later state: an item's `phase` tells what work under way still builds or removes, and what is planned for later lies in a roadmap as changes to this document (roadmap.json). This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
   "x-bzf-status": "draft",
   "x-bzf-class": "building",
   "type": "object",
