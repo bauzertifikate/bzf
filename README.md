@@ -110,7 +110,7 @@ schemas here describe the files.
   the EPBD or an EU or international standard defines stays bare (`nzeb`, `scop`). The folder names (`Daten/`,
   `Versendet/`, `Ergebnisse/`, `Zeichnungen/`, `Fotos/`, `Dokumente/`) are fixed identifiers of the format and are not
   translated; a received file's `role` (`plans`, `photos`, `documents`) says what its folder is for in any language.
-  The store's directory `.bauzertifikate/` becomes `.bzf/` before spec 1.0, and readers then read both.
+  The store's directory is `.bauzertifikate/`, and that name stays.
 - **Defaults are left out**, so a document read and written back keeps its bytes.
 - **Conflicts.** The store's merge keeps a value two writers changed differently as `{"$conflict": {"base", "values"}}`
   in place of the value. A document holding conflicts is validated as the apps read it: each conflict settled by its

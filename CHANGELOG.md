@@ -19,6 +19,11 @@ The second point changes the folder layout that 0.1.0 described. Migration:
 - A writer names a new project's file `<Name>.bzfproj`. It renames an older `<Name>.bzf` with the next revision it
   writes, never on opening.
 
+### The store's directory
+
+- The store's directory keeps its name, `.bauzertifikate/`. 0.1.0 announced a rename to `.bzf/` before spec 1.0;
+  that rename is dropped, so no reader has to look for two names.
+
 ### The building as it stands
 
 - A building document describes the building as it stands, in every revision, and holds no later state
