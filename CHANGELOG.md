@@ -1,8 +1,6 @@
 # Changelog
 
-## Unreleased (0.2.0)
-
-Changes on `main` since 0.1.0. They are not released yet and can still change before the tag.
+## 0.2.0 — 2026-11-12
 
 ### A project in one file
 
@@ -56,6 +54,10 @@ was recorded stays a done step without changes.
 
 - The tests accept a project file under both names, cover `appliedSteps`, and check in the examples that no planned
   step adds an item the building document already holds.
+
+### Editorial
+
+- The description of `bzf-epbd/0.1` no longer names the paths of one implementation; it points to MAPPINGS.md.
 
 ## 0.1.0 — 2026-11-10
 

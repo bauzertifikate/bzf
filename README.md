@@ -7,11 +7,10 @@ implementations, contributions and forks. Using BZF does not require a Bauzertif
 This is the canonical repository for the specification, JSON Schemas, fictional examples and conformance tests.
 The schemas are the source of truth; implementations derive their own calculation models from them.
 
-**Specification edition: 0.1.0 (initial public release).** `main` also holds the changes for edition 0.2.0, which
-is not released yet; [CHANGELOG.md](CHANGELOG.md) lists them. The document schemas describe BZF 1.x. Some schemas are
-stable and others are drafts, as listed below. Drafts can still change incompatibly before specification 1.0;
-stable schemas retain their compatibility promise. Pin a release tag or commit for reproducible integrations.
-See [VERSIONING.md](VERSIONING.md) for versioning and compatibility, and [CONTRIBUTING.md](CONTRIBUTING.md) to contribute.
+**Specification edition: 0.2.0.** [CHANGELOG.md](CHANGELOG.md) lists what changed since 0.1.0. The document schemas
+describe BZF 1.x. Some schemas are stable and others are drafts, as listed below. Drafts can still change
+incompatibly before specification 1.0; stable schemas retain their compatibility promise. Pin a release tag or
+commit for reproducible integrations. See [VERSIONING.md](VERSIONING.md) for versioning and compatibility, and [CONTRIBUTING.md](CONTRIBUTING.md) to contribute.
 
 Start with the [example project](examples/haus-am-hang/) and the schema table below. [MAPPINGS.md](MAPPINGS.md)
 maps the building data to EPBD and iSFP information requirements. The EPBD dataset is a BZF proposal, not an official EU format.
@@ -175,7 +174,7 @@ These rules apply from specification edition 0.x onward. A reader or writer of b
    needs a newer one than the schema versions say.
 
 Versions: the store format (`bzf/1` in the project file and every revision) changes with the folder or the store; each
-document's `schema` (`"1.0"`) changes with the document, a minor version only adding; the spec edition (`0.1.0`
+document's `schema` (`"1.0"`) changes with the document, a minor version only adding; the spec edition (`0.2.0`
 now) changes with the text. A stable schema changes only by additions within its major version.
 
 ## Checking
@@ -231,4 +230,4 @@ Anlagentechnik, Sanierungsschritte und ausgestellte Dokumente als JSON. Andere P
 Bauzertifikate lesen und schreiben. Ein Projekt liegt als Ordner vor oder als einzelne Datei `<Name>.bzf`. Das
 Gebäudedokument beschreibt das Gebäude immer so, wie es steht; geplante Sanierungsschritte stehen im Fahrplan.
 Die Schemas und Beispiele sind frei verfügbar; Beiträge und Forks sind willkommen.
-Die Spezifikation ist noch in Version 0.1.0, mit ausdrücklich gekennzeichneten stabilen und vorläufigen Teilen.
+Die Spezifikation ist in Version 0.2.0, mit ausdrücklich gekennzeichneten stabilen und vorläufigen Teilen.

@@ -4,7 +4,7 @@ BZF has three independent version identifiers:
 
 | Identifier | Meaning | Current value |
 |---|---|---|
-| Specification edition / Git release tag | A complete, reproducible snapshot of schemas, documentation and tests | `0.1.0` / `v0.1.0` |
+| Specification edition / Git release tag | A complete, reproducible snapshot of schemas, documentation and tests | `0.2.0` / `v0.2.0` |
 | Document `schema` | The version of that document's data contract | `1.0` |
 | Store `format` | The project folder and revision format | `bzf/1` |
 
