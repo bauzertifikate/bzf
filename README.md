@@ -14,6 +14,7 @@ commit for reproducible integrations. See [VERSIONING.md](VERSIONING.md) for ver
 
 Start with the [example project](examples/haus-am-hang/) and the schema table below. [MAPPINGS.md](MAPPINGS.md)
 maps the building data to EPBD and iSFP information requirements. The EPBD dataset is a BZF proposal, not an official EU format.
+[SOLIDS.md](SOLIDS.md) says which solid a building document's walls, slabs, roof plates and openings are.
 
 | Schema | What | Status |
 |---|---|---|
@@ -79,7 +80,9 @@ revision it writes, never on opening.
 
 In the spec: the building model's documents, the project folder with its project file and its store (objects,
 canonical JSON, revisions, heads, merge, received files), the project as one `.bzf` file, and the envelope of results
-and issued documents (which revision, which kernel version, to whom). Not in it: our kernel and the builders that
+and issued documents (which revision, which kernel version, to whom), and the rules that turn a building document's
+walls, slabs, roof plates and openings into solids ([SOLIDS.md](SOLIDS.md), a draft; the solids themselves are
+derived and never stored). Not in it: our kernel and the builders that
 derive figures from the model (envelope, areas, quantities, U-values, the DIN/TS 18599 balance are never stored), the
 apps' own documents (`energieberatung/…`, `aufmass/…`: reserved, kept unchanged by others, not described), the
 contents of issued files (their formats are GAEB's, DIBt's, BAFA's), sync, server, accounts and AI. Overrides are
@@ -194,9 +197,17 @@ The optional `BZF_DOCUMENTS` environment variable points to implementation-gener
 is described in `tools/check/tests/documents.rs`; without it, the independent schema and example tests still run.
 This is a conformance test suite, not yet a general-purpose `bzf check` command-line validator.
 
+The check also covers the expected solids in [`examples/solids/`](examples/solids/): each solid closed and looking
+outwards, lying where the building document puts its item, every item covered or its absence explained by a rule,
+and the volumes compared with figures worked out by hand. It does this without the program that made the files;
+[SOLIDS.md](SOLIDS.md) has the rules and the tolerance.
+
 [`examples/haus-am-hang/`](examples/haus-am-hang/) is a fictional house of 1968, with a gas boiler, consumption,
-an issued certificate, renovation steps, costs and consent records. People, projects and records in the examples
-are fictional. Referenced photographs, plans, invoices and issued PDFs are not included.
+an issued certificate, renovation steps, costs and consent records.
+[`examples/werkstatt-am-bach/`](examples/werkstatt-am-bach/) is a fictional workshop of 1995, a building document
+only, drawn for the solids' rules: inner walls, a separation line, a monopitch roof plate with an overhang. People,
+projects and records in the examples are fictional. Referenced photographs, plans, invoices and issued PDFs are not
+included.
 
 ## The EPBD proposal: bzf-epbd
 

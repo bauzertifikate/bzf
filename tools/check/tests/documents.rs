@@ -276,7 +276,7 @@ fn the_examples() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples");
     let mut errors = Vec::new();
     let mut checked = 0;
-    // The projects: the folders with a project file (bzf-epbd/ holds the EPBD proposal's files, tests/epbd.rs).
+    // The projects: the folders with a project file (bzf-epbd/ holds the EPBD proposal's files, tests/epbd.rs; solids/ the expected solids, tests/solids.rs).
     let projects = subfolders(&root).into_iter().filter(|p| !project_files(p).is_empty());
     for project in projects {
         let mut check = |target: &str, path: &Path, doc: &Value| {

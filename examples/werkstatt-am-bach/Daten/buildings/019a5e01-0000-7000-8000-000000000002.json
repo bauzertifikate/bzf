@@ -1,0 +1,456 @@
+{
+  "schema": "1.1",
+  "id": "019a5e01-0000-7000-8000-000000000002",
+  "label": "Werkstatt am Bach",
+  "address": {
+    "street": "Am Bach",
+    "number": "3",
+    "postcode": "88212",
+    "city": "Musterstadt",
+    "country": "DE"
+  },
+  "year": 1995,
+  "use": "nonResidential",
+  "category": "other",
+  "parts": [
+    {
+      "id": "019a5e01-0000-7000-8000-000000000003",
+      "storeys": [
+        {
+          "id": "019a5e01-0000-7000-8000-000000000004",
+          "label": "EG",
+          "level": 0,
+          "height": 3500,
+          "walls": [
+            {
+              "id": "019a5e01-0000-7000-8000-00000000000a",
+              "label": "Süd",
+              "line": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8000,
+                  0
+                ]
+              ],
+              "construction": "019a5e01-0000-7000-8000-000000000005",
+              "exterior": true,
+              "year": 1995,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e01-0000-7000-8000-00000000000b",
+              "label": "Ost",
+              "line": [
+                [
+                  8000,
+                  0
+                ],
+                [
+                  8000,
+                  5000
+                ]
+              ],
+              "construction": "019a5e01-0000-7000-8000-000000000005",
+              "exterior": true,
+              "year": 1995,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e01-0000-7000-8000-00000000000c",
+              "label": "Nord",
+              "line": [
+                [
+                  0,
+                  5000
+                ],
+                [
+                  8000,
+                  5000
+                ]
+              ],
+              "placement": {
+                "sense": "right"
+              },
+              "construction": "019a5e01-0000-7000-8000-000000000005",
+              "exterior": true,
+              "year": 1995,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e01-0000-7000-8000-00000000000d",
+              "label": "West",
+              "line": [
+                [
+                  0,
+                  5000
+                ],
+                [
+                  0,
+                  0
+                ]
+              ],
+              "construction": "019a5e01-0000-7000-8000-000000000005",
+              "exterior": true,
+              "year": 1995,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e01-0000-7000-8000-00000000000e",
+              "label": "Trennwand",
+              "line": [
+                [
+                  4000,
+                  0
+                ],
+                [
+                  4000,
+                  5000
+                ]
+              ],
+              "placement": {
+                "offset": -73
+              },
+              "construction": "019a5e01-0000-7000-8000-000000000006",
+              "exterior": false,
+              "year": 1995,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e01-0000-7000-8000-00000000000f",
+              "label": "Lagerwand",
+              "line": [
+                [
+                  4000,
+                  2500
+                ],
+                [
+                  8000,
+                  2500
+                ]
+              ],
+              "placement": {
+                "offset": -73
+              },
+              "construction": "019a5e01-0000-7000-8000-000000000006",
+              "top": 2200,
+              "exterior": false,
+              "year": 1995,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e01-0000-7000-8000-000000000010",
+              "label": "Werkbank | Montage",
+              "line": [
+                [
+                  0,
+                  2500
+                ],
+                [
+                  4000,
+                  2500
+                ]
+              ],
+              "kind": "separation",
+              "phase": "existing"
+            }
+          ],
+          "slabs": [
+            {
+              "id": "019a5e01-0000-7000-8000-000000000014",
+              "label": "Bodenplatte",
+              "outline": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8000,
+                  0
+                ],
+                [
+                  8000,
+                  5000
+                ],
+                [
+                  0,
+                  5000
+                ]
+              ],
+              "top": 0,
+              "year": 1995,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e01-0000-7000-8000-000000000015",
+              "label": "Lagerboden",
+              "outline": [
+                [
+                  4000,
+                  2500
+                ],
+                [
+                  8000,
+                  2500
+                ],
+                [
+                  8000,
+                  5000
+                ],
+                [
+                  4000,
+                  5000
+                ]
+              ],
+              "holes": [
+                [
+                  [
+                    7000,
+                    3900
+                  ],
+                  [
+                    7000,
+                    4700
+                  ],
+                  [
+                    7800,
+                    4700
+                  ],
+                  [
+                    7800,
+                    3900
+                  ]
+                ]
+              ],
+              "top": 2400,
+              "construction": "019a5e01-0000-7000-8000-000000000007",
+              "year": 1995,
+              "phase": "existing"
+            }
+          ],
+          "openings": [
+            {
+              "id": "019a5e01-0000-7000-8000-000000000011",
+              "label": "Fenster Süd",
+              "host": "019a5e01-0000-7000-8000-00000000000a",
+              "offset": 1500,
+              "sill": 900,
+              "width": 1500,
+              "height": 1250,
+              "kind": "window",
+              "year": 1995,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e01-0000-7000-8000-000000000012",
+              "label": "Tür Lager",
+              "host": "019a5e01-0000-7000-8000-00000000000f",
+              "offset": 1500,
+              "sill": 0,
+              "width": 1000,
+              "height": 2000,
+              "kind": "door",
+              "year": 1995,
+              "phase": "existing"
+            },
+            {
+              "id": "019a5e01-0000-7000-8000-000000000013",
+              "label": "Eingang",
+              "host": "019a5e01-0000-7000-8000-00000000000d",
+              "offset": 500,
+              "sill": 0,
+              "width": 1000,
+              "height": 2100,
+              "kind": "door",
+              "year": 1995,
+              "phase": "existing"
+            }
+          ]
+        }
+      ],
+      "roofs": [
+        {
+          "id": "019a5e01-0000-7000-8000-000000000016",
+          "label": "Pultdach",
+          "plate": {
+            "plane": {
+              "points": [
+                [
+                  0,
+                  0,
+                  3400
+                ],
+                [
+                  8000,
+                  0,
+                  3400
+                ],
+                [
+                  0,
+                  5000,
+                  2900
+                ]
+              ]
+            },
+            "outline": [
+              [
+                -400,
+                -400
+              ],
+              [
+                8400,
+                -400
+              ],
+              [
+                8400,
+                5430
+              ],
+              [
+                -400,
+                5430
+              ]
+            ],
+            "holes": [
+              [
+                [
+                  1500,
+                  2000
+                ],
+                [
+                  1500,
+                  3000
+                ],
+                [
+                  2500,
+                  3000
+                ],
+                [
+                  2500,
+                  2000
+                ]
+              ]
+            ],
+            "thickness": 200
+          },
+          "construction": "019a5e01-0000-7000-8000-000000000008",
+          "year": 1995,
+          "phase": "existing"
+        }
+      ]
+    }
+  ],
+  "constructions": [
+    {
+      "id": "019a5e01-0000-7000-8000-000000000005",
+      "name": "Außenwand",
+      "layers": [
+        {
+          "material": {
+            "name": "Außenputz",
+            "lambda": 1.0,
+            "density": 1800
+          },
+          "thickness": 0.02
+        },
+        {
+          "material": {
+            "name": "Porenbeton",
+            "lambda": 0.16,
+            "density": 500
+          },
+          "thickness": 0.365
+        },
+        {
+          "material": {
+            "name": "Innenputz",
+            "lambda": 0.7,
+            "density": 1400
+          },
+          "thickness": 0.015
+        }
+      ]
+    },
+    {
+      "id": "019a5e01-0000-7000-8000-000000000006",
+      "name": "Innenwand",
+      "layers": [
+        {
+          "material": {
+            "name": "Innenputz",
+            "lambda": 0.7,
+            "density": 1400
+          },
+          "thickness": 0.015
+        },
+        {
+          "material": {
+            "name": "Kalksandstein",
+            "lambda": 0.99,
+            "density": 1800
+          },
+          "thickness": 0.115
+        },
+        {
+          "material": {
+            "name": "Innenputz",
+            "lambda": 0.7,
+            "density": 1400
+          },
+          "thickness": 0.015
+        }
+      ]
+    },
+    {
+      "id": "019a5e01-0000-7000-8000-000000000007",
+      "name": "Lagerboden",
+      "layers": [
+        {
+          "material": {
+            "name": "Holzwerkstoffplatte",
+            "lambda": 0.13,
+            "density": 600
+          },
+          "thickness": 0.02
+        },
+        {
+          "material": {
+            "name": "Holzbalken",
+            "lambda": 0.13,
+            "density": 500
+          },
+          "thickness": 0.18
+        }
+      ]
+    },
+    {
+      "id": "019a5e01-0000-7000-8000-000000000008",
+      "name": "Pultdach",
+      "layers": [
+        {
+          "material": {
+            "name": "Dachabdichtung"
+          },
+          "thickness": 0.01
+        },
+        {
+          "material": {
+            "name": "Wärmedämmung",
+            "lambda": 0.04,
+            "density": 30
+          },
+          "thickness": 0.14
+        },
+        {
+          "material": {
+            "name": "Holzschalung",
+            "lambda": 0.13,
+            "density": 500
+          },
+          "thickness": 0.05
+        }
+      ]
+    }
+  ]
+}
