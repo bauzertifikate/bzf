@@ -264,6 +264,7 @@ bzf verify examples/haus-am-hang/Ergebnisse/Energieberatung/Energieausweis/ergeb
 | `bzf hash <document.json>` | The hash that results and issues name the document by ([HASHES.md](HASHES.md)) |
 | `bzf sign <ergebnis.json> --name … --key … --cert …` | Signs a result record ([SIGNATURES.md](SIGNATURES.md)) |
 | `bzf verify <ergebnis.json>` | Verifies the signatures beside a result record and names who signed. Ends with 1 if one does not hold |
+| `bzf solids <folder \| file.bzf \| building.json> [--building <path>]` | The solids of a building document by [SOLIDS.md](SOLIDS.md), as JSON in the format of [`examples/solids/`](examples/solids/); in a project with several buildings, `--building Daten/buildings/<id>.json` names one |
 | `bzf version` | The specification edition the program checks by |
 
 It ends with 0 when all is well, 1 when a rule is broken or a signature does not hold, and 2 when it could not
@@ -273,8 +274,10 @@ which it lists as notes.
 
 The check also covers the expected solids in [`examples/solids/`](examples/solids/): each solid closed and looking
 outwards, lying where the building document puts its item, every item covered or its absence explained by a rule,
-and the volumes compared with figures worked out by hand. It does this without the program that made the files;
-[SOLIDS.md](SOLIDS.md) has the rules and the tolerance.
+and the volumes compared with figures worked out by hand. It does this twice: without any implementation of the
+rules, and with the reference implementation in [`tools/solids`](tools/solids/) (the library `bzf-solids`), which
+makes each file again from its building document within the tolerance. [SOLIDS.md](SOLIDS.md) has the rules and the
+tolerance; where the library and the text differ, the text is the rule.
 
 [`examples/haus-am-hang/`](examples/haus-am-hang/) is a fictional house of 1968, with a gas boiler, consumption,
 an issued certificate, renovation steps, costs and consent records, two result records, one of them made with a
@@ -303,6 +306,9 @@ The tests validate both and check that every example field is declared in the sc
 | Specification and documentation | [CC BY 4.0](LICENSES/CC-BY-4.0.txt) |
 | JSON Schemas, IDS definition and example data | [CC0 1.0](LICENSES/CC0-1.0.txt) |
 | Code in `tools/`, scripts and CI configuration | [Apache-2.0](LICENSES/Apache-2.0.txt) OR [MIT](LICENSES/MIT.txt) |
+
+The reference implementation of [SOLIDS.md](SOLIDS.md) in `tools/solids` is code in `tools/` and under the same
+licences, Apache-2.0 OR MIT.
 
 Attribution for the documentation: Bauzertifikate contributors. The same terms apply to contributions to each part.
 The repository's licences do not change the ownership or licences of real building data stored in BZF files.

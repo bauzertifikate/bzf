@@ -7,7 +7,8 @@ bodies. It belongs to [`building.json`](schema/bzf/1/building.json) and is a dra
 
 Solids are derived. A project never stores them ("Facts, not results" in the [README](README.md)); a program makes
 them from the building document when it needs them. The expected solids of the example buildings are published in
-[`examples/solids/`](examples/solids/) as test data, and `./check.sh` checks them.
+[`examples/solids/`](examples/solids/) as test data, and `./check.sh` checks them. A reference implementation of
+these rules is published beside them (see "A reference implementation").
 
 ## Limits
 
@@ -171,9 +172,21 @@ plate or rising through one, a square end at a very sharp corner, a window cut b
 surfaces, and the rules `noBody` and `host`. The rules above are the specification for them; expected solids will
 follow with examples that hold such items.
 
+## A reference implementation
+
+[`tools/solids`](tools/solids/) is a Rust library, `bzf-solids`, that makes the solids of a building document by
+these rules. `solids` gives every solid of a building, `without` every wall, slab, roof plate and opening without one
+with its rule from the table above, and `file` writes both in the format of the expected solids. `bzf solids` prints
+that file for a project or a building document (README, "The `bzf` program"). The library is licensed as the rest of
+the code in `tools/` is, Apache-2.0 OR MIT, and Bauzertifikate's own programs make their solids with it.
+
+The text stays the rule. Where the library and this text differ, the library is wrong: please report the difference
+as a bug, with the building document that shows it. A rule changes in this text first, then in the library and in
+the expected solids.
+
 ## Checking
 
-`./check.sh` checks the files in `examples/solids/` without the program that made them
+`./check.sh` checks the files in `examples/solids/` in two ways. Without any implementation
 ([`tools/check/tests/solids.rs`](tools/check/tests/solids.rs)):
 
 - each file is well-formed and names items of its building, with their kind, part and storey;
@@ -187,3 +200,9 @@ follow with examples that hold such items.
 
 The check also shows that it finds a faulty file: a face missing or turned, another volume, an item left out, a rule
 that does not fit.
+
+And with the reference implementation ([`tools/check/tests/reference.rs`](tools/check/tests/reference.rs)): it
+makes each file again from its building document and compares the two within the file's tolerance, both ways. The
+library's own tests ([`tools/solids/tests/rules.rs`](tools/solids/tests/rules.rs)) hold it to the rules on small
+buildings, among them cases the examples do not cover yet: a wall standing on a plate or rising through one, a window
+cut by the roof, items made of elements, surfaces.

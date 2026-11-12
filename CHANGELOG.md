@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### A reference implementation of the solids
+
+- New library `bzf-solids` in [`tools/solids`](tools/solids/): the solids of a building document by the rules of
+  [SOLIDS.md](SOLIDS.md), the items without a solid with their rule, and the expected-solids file written from both.
+  Apache-2.0 OR MIT, as the other code in `tools/`. It is the code the expected solids in `examples/solids/` were
+  made with; it writes them again byte for byte. The text stays the rule: where the two differ, the library is wrong.
+- New command `bzf solids <folder | file.bzf | building.json>`: prints a building's solids in the format of
+  `examples/solids/`.
+- `./check.sh` makes the expected solids again with the library and compares them within the files' tolerance
+  (`tools/check/tests/reference.rs`), besides checking them without it as before. The library's own tests hold it
+  to the rules on small buildings, including cases the examples do not cover yet.
+- No schema, rule or example changes.
+
 ## 0.3.0 — 2026-11-12
 
 The first edition with a program to use it by: `bzf` checks a project, packs and unpacks the `.bzf` file, names a

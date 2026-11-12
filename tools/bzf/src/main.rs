@@ -35,6 +35,10 @@ bzf: checks, packs, unpacks and signs BZF projects (format bzf/1)
   bzf verify <ergebnis.json>
       Verifies the signatures beside a result record and names who signed. Ends with 1 if one does not hold.
 
+  bzf solids <folder | file.bzf | building.json> [--building <path>]
+      The solids of a building document by the rules of SOLIDS.md, as JSON in the format of examples/solids/.
+      In a project with several buildings, --building names one by its path, Daten/buildings/<id>.json.
+
   bzf version
       The specification edition this program checks by.
 ";
@@ -49,6 +53,7 @@ fn main() -> ExitCode {
         Some("hash") => hash_of(&rest),
         Some("sign") => sign(&rest),
         Some("verify") => verify(&rest),
+        Some("solids") => solids(&rest),
         Some("version" | "--version" | "-V") => {
             println!("bzf {} (specification edition {0}, format bzf/1)", env!("CARGO_PKG_VERSION"));
             Ok(true)
@@ -271,6 +276,37 @@ fn verify(args: &[&str]) -> Result<bool, String> {
     println!("A signature says who signed these figures and that they are unchanged since. Whether to trust the");
     println!("certificate is the reader's decision; nothing here says the figures are right.");
     Ok(holds)
+}
+
+fn solids(args: &[&str]) -> Result<bool, String> {
+    let (plain, given) = options(args, &[], &["--building"])?;
+    let [path] = plain[..] else { return Err("solids takes one folder, .bzf file or building document".into()) };
+    let chosen = given.iter().find(|(option, _)| *option == "--building").map(|(_, value)| *value);
+    // A building document named by its own path, or one of a project's by its path in the project.
+    let (name, bytes) = if path.ends_with(".json") && Path::new(path).is_file() {
+        (path.to_string(), read(path)?)
+    } else {
+        let tree = tree(path)?;
+        let buildings: Vec<&String> =
+            tree.keys().filter(|k| k.starts_with("Daten/buildings/") && k.ends_with(".json")).collect();
+        let name = match (chosen, &buildings[..]) {
+            (Some(chosen), _) => buildings
+                .iter()
+                .find(|b| b.as_str() == chosen)
+                .ok_or_else(|| format!("{path}: no building document {chosen}"))?,
+            (None, [one]) => *one,
+            (None, []) => return Err(format!("{path}: no building document under Daten/buildings/")),
+            (None, several) => {
+                let names: Vec<&str> = several.iter().map(|b| b.as_str()).collect();
+                return Err(format!("{path}: several buildings, name one with --building: {}", names.join(", ")));
+            }
+        };
+        (name.clone(), tree[name].clone())
+    };
+    let building: bzf_solids::Building =
+        serde_json::from_slice(&bytes).map_err(|e| format!("{name}: not a building document: {e}"))?;
+    print!("{}", bzf_solids::file(&building, &name));
+    Ok(true)
 }
 
 /// Seconds since 1970 as a date and time in UTC, by the days-to-civil reckoning of the proleptic Gregorian calendar.

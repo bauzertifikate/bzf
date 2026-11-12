@@ -295,3 +295,29 @@ fn the_program_packs_unpacks_checks_and_verifies() {
     assert!(!scratch.join("slipped").exists() && !scratch.join("escaped.json").exists());
     fs::remove_dir_all(&scratch).unwrap();
 }
+
+#[test]
+fn the_program_gives_a_buildings_solids() {
+    // Run from the repository's root, a building document's path is the one the expected solids name it by, and the
+    // program writes the file as published.
+    let root = examples().join("..");
+    let run = |args: &[&str]| {
+        let output = Command::new(env!("CARGO_BIN_EXE_bzf")).current_dir(&root).args(args).output().unwrap();
+        (output.status.code(), String::from_utf8_lossy(&output.stdout).into_owned())
+    };
+    for (name, id) in [("haus-am-hang", "019a5e00"), ("werkstatt-am-bach", "019a5e01")] {
+        let document = format!("examples/{name}/Daten/buildings/{id}-0000-7000-8000-000000000002.json");
+        let (code, text) = run(&["solids", &document]);
+        assert_eq!(code, Some(0), "{text}");
+        assert_eq!(text, fs::read_to_string(examples().join(format!("solids/{name}.json"))).unwrap(), "{name}");
+    }
+    // In a project the document is named by its path in the project.
+    let (code, text) = bzf(&["solids", &examples().join("Haus am Hang.bzf").to_string_lossy()]);
+    assert_eq!(code, Some(0), "{text}");
+    let file: Value = serde_json::from_str(&text).unwrap();
+    assert_eq!(file["building"], BUILDING);
+    assert!(file["solids"].as_array().is_some_and(|s| !s.is_empty()));
+    let folder = examples().join("werkstatt-am-bach").to_string_lossy().into_owned();
+    let (code, text) = bzf(&["solids", &folder, "--building", "Daten/buildings/none.json"]);
+    assert_eq!(code, Some(2), "{text}");
+}

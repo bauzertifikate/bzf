@@ -167,6 +167,9 @@ fn closed(faces: &[Vec<Vec<P3>>]) -> Result<f64, String> {
     Ok(volumes.values().sum())
 }
 
+/// A layer: its thickness, mm, and its material's name.
+type Layer = (f64, Option<String>);
+
 /// A building's facts as far as the solids' rules read them.
 struct Building<'a> {
     doc: &'a Value,
@@ -219,7 +222,7 @@ impl<'a> Building<'a> {
     }
 
     /// A construction's name and its layers, each its thickness in mm and its material's name.
-    fn construction(&self, id: &Value) -> Option<(String, Vec<(f64, Option<String>)>)> {
+    fn construction(&self, id: &Value) -> Option<(String, Vec<Layer>)> {
         let c = list(self.doc, "constructions").find(|c| c["id"] == *id && id.is_string())?;
         let layers = list(c, "layers")
             .map(|l| (mm(&l["thickness"]) * 1000.0, l["material"]["name"].as_str().map(str::to_string)))
