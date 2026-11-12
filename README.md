@@ -92,6 +92,11 @@ and checks each object against its hash; a **writer** writes on a head of its ow
 and merges by the spec's rules. The rules of levels 2 and 3 are to be written down in the specification text; the
 schemas here describe the files.
 
+A writer need not read every document. A program for one task, time sheets for instance, may have no use for the
+building document, and it can still contribute to the project: it adds its own documents and the files it received
+in a revision on its head, and carries every document it does not read into that revision unchanged, by its hash.
+So every program that works on a project can add to it, whatever it reads of it.
+
 ## How the documents are written
 
 - **Identity.** Every item has an id for life, a UUID in its standard text form (UUIDv7 when we make one), and a label

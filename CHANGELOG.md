@@ -47,6 +47,11 @@ was recorded stays a done step without changes.
   received, and nothing a method works out from them. What was issued is kept as issued in `Versendet/`. No schema
   changed for this.
 
+### Contributing without reading
+
+- README, conformance: a writer need not read every document. It can add its own documents and received files to a
+  project and carries the documents it does not read into its revision unchanged. No schema changed for this.
+
 ### Conformance tests
 
 - The tests accept a project file under both names, cover `appliedSteps`, and check in the examples that no planned
