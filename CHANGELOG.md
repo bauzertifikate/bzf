@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 — 2026-11-12
+
+The first edition with a program to use it by: `bzf` checks a project, packs and unpacks the `.bzf` file, names a
+document by its hash and signs a result. Documents that were valid under 0.2.0 stay valid; "Migration" below has
+the two things a writer does differently.
 
 ### Results beside the model (draft)
 
@@ -8,16 +12,66 @@
   worked out per state, the documents they were made from by the hash of their canonical JSON, the method, the
   program and kernel version, the program's settings (`choices`) and what the method assumed (`assumptions`). Class
   `building`. README, "Results beside the model", has the rules: who writes it, when it is stale, what it shows.
+- A result is current, stale, or not to be told: where a document it names is not in the project (a share leaves a
+  program's settings behind), a reader says that it cannot tell, and does not call the result stale.
 - `versand.json`: an issue can name the result it issued (`result`, a hash). The figures' definition moved unchanged
   to `common.json` `$defs/figures`, which `result.json` shares.
 - `revision.json`: a head's result entry can name the documents the file was made from (`inputs`), so a result is
   stale only when one of them changed, and not with every later revision.
-- The place for detached signatures over a result record is reserved (`ergebnis.<name>.jws`). No profile yet.
-- Example Haus am Hang: two result records, one behind the certificate and one behind the roadmap. The three issues
-  now name their inputs by the documents' real hashes; in 0.2.0 these were made-up values.
-- `./check.sh` writes canonical JSON (RFC 8785) itself and checks, in the examples, every hash a result or an issue
-  names a document or a result by, that an issue states its result's figures, and that a roadmap's result is
-  calculated by the method the roadmap rests on.
+
+### How a document is named by its hash
+
+- New text [HASHES.md](HASHES.md): the two hashes (a file's octets, a document's canonical JSON), canonical JSON
+  as RFC 8785 has it, what a document must be for readers to agree on its hash, and when a result is stale.
+- New: no name twice in one object, in any document. JSON allows it and parsers disagree on it, so such a document
+  has no hash readers agree on. `bzf check` reports it as an error.
+- New test vectors [`vectors/canonical.json`](vectors/canonical.json): the number samples of RFC 8785, Appendix B,
+  and documents with their canonical form and hash, for an implementation in any language.
+
+### Signatures over a result (draft)
+
+- New text [SIGNATURES.md](SIGNATURES.md). 0.2.0's draft only reserved the file name. A signature is a file
+  `ergebnis.<name>.jws` beside the record: a JSON Web Signature in the compact serialization with the payload
+  detached, over the record's canonical JSON, by ES256, with the signer's certificate in the header (`x5c`) and the
+  claimed time (`iat`). The header follows the requirements of a JAdES baseline signature (ETSI TS 119 182-1); the
+  signatures were not run through a JAdES conformance checker.
+- A signature states who signed and that the record is unchanged. It states nothing about entitlement, and trust
+  in the certificate is the reader's decision: no chain is built and no revocation asked for.
+
+### A project in one file
+
+- The `.bzf` file is no longer "a draft until an implementation writes and reads it": `bzf pack` and `bzf unpack`
+  do, and `examples/Haus am Hang.bzf` is the example project as a share.
+- The rules for reading say in full what a reader refuses: a name that leaves the folder (absolute, a drive
+  letter, a backslash, a control character, a `..`, `.` or empty part), an encrypted entry, a link, a compression
+  other than stored or deflated, a name twice without regard to case. 0.2.0 named only absolute names and `..`.
+- The rules for passing on say what a share holds: the project file, the documents of the class `building`, the
+  received files that `received.json` names, the result records with their signatures; nothing from `Versendet/`
+  and no store.
+
+### The `bzf` program
+
+- New `tools/bzf`, a program and a Rust library: `bzf check`, `pack`, `unpack`, `hash`, `sign`, `verify`,
+  `version`. README, "Checking". It checks a folder or a `.bzf` file against the schemas and the rules between
+  documents: references, a result's inputs, an issue's result and figures, signatures. It does not check the store
+  yet.
+- `./check.sh` runs the program's tests with the conformance tests, which now use the library's rules instead of
+  a copy of them.
+
+### The example
+
+- Haus am Hang: two result records, one behind the certificate and one behind the roadmap; a settings document of
+  the program that the certificate's result names among its inputs; a signature by a made-up Energieberater, whose
+  key is in no repository. The three issues name their inputs by the documents' real hashes; in 0.2.0 these were
+  made-up values.
+
+### Migration
+
+- A writer that keeps a result writes it as a result record and names its inputs. A head's result entry without
+  `inputs` stays valid and is current only at its revision, as before.
+- A writer that replaces a result record removes the `ergebnis.*.jws` files beside it.
+- A document with a name twice in one object was never one that two readers read alike; a writer that produced
+  one writes it again with each name once.
 
 ## 0.2.0 — 2026-11-12
 

@@ -1,9 +1,9 @@
 [workspace]
 resolver = "3"
-members = ["check"]
+members = ["bzf", "check"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.3.0"
 edition = "2024"
 publish = false
 license = "Apache-2.0 OR MIT"
@@ -11,4 +11,10 @@ license = "Apache-2.0 OR MIT"
 [workspace.dependencies]
 jsonschema = { version = "=0.60.2", default-features = false }
 serde_json = "=1.0.154"
-sha2 = { version = "=0.10.9", default-features = false }
+sha2 = { version = "=0.11.1", default-features = false }
+p256 = { version = "=0.14.0", default-features = false, features = ["ecdsa", "pkcs8", "pem", "std"] }
+serde = { version = "=1.0.229", default-features = false, features = ["std"] }
+ryu-js = { version = "=1.0.3", default-features = false }
+x509-cert = { version = "=0.3.0", default-features = false, features = ["pem", "std"] }
+zip = { version = "=9.5.1", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+base64ct = { version = "=1.8.3", default-features = false, features = ["alloc"] }

@@ -1,0 +1,7 @@
+{
+  "schema": "1.0",
+  "balance": {
+    "partialHeating": false,
+    "thermalBridges": "flat"
+  }
+}

@@ -35,6 +35,7 @@
   ],
   "inputs": {
     "buildings/019a5e00-0000-7000-8000-000000000002.json": "bf2b3ef4734cfa35700016c22d93c4ce81830bc4f4a649f2062c236d38b13088",
+    "energieberatung/settings.json": "cb31a780a5f3b5983d419991f8aaa8e7740d1f173c2dde014f33a39a8be7049a",
     "project.json": "9a2feaa6e5207c1f1b11d99d9882751635a96ff565884e8e122e598e435c0873"
   },
   "files": [
@@ -52,5 +53,5 @@
       "format": "dibt-geg-2027"
     }
   ],
-  "result": "f3e7b4b4f4a44f03be6949a2734ca9731d86eb13747aad7bd929bdea99f01322"
+  "result": "b63a475c883938e8aac2069f6c4356311eff54fffb953713f4f990493a1966f5"
 }

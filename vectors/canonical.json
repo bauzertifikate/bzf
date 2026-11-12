@@ -1,0 +1,133 @@
+{
+  "about": "Test vectors for HASHES.md: canonical JSON (RFC 8785) and the SHA-256 a document is named by. `numbers` pairs a double's bits (IEEE 754, hexadecimal, as RFC 8785 Appendix B writes them) with the number as canonical JSON writes it. Each of `documents` gives a JSON text, its canonical form and the SHA-256 of that form's UTF-8 octets.",
+  "numbers": [
+    [
+      "0000000000000000",
+      "0"
+    ],
+    [
+      "8000000000000000",
+      "0"
+    ],
+    [
+      "0000000000000001",
+      "5e-324"
+    ],
+    [
+      "8000000000000001",
+      "-5e-324"
+    ],
+    [
+      "7fefffffffffffff",
+      "1.7976931348623157e+308"
+    ],
+    [
+      "ffefffffffffffff",
+      "-1.7976931348623157e+308"
+    ],
+    [
+      "4340000000000000",
+      "9007199254740992"
+    ],
+    [
+      "c340000000000000",
+      "-9007199254740992"
+    ],
+    [
+      "4430000000000000",
+      "295147905179352830000"
+    ],
+    [
+      "44b52d02c7e14af5",
+      "9.999999999999997e+22"
+    ],
+    [
+      "44b52d02c7e14af6",
+      "1e+23"
+    ],
+    [
+      "44b52d02c7e14af7",
+      "1.0000000000000001e+23"
+    ],
+    [
+      "444b1ae4d6e2ef4e",
+      "999999999999999700000"
+    ],
+    [
+      "444b1ae4d6e2ef4f",
+      "999999999999999900000"
+    ],
+    [
+      "444b1ae4d6e2ef50",
+      "1e+21"
+    ],
+    [
+      "3eb0c6f7a0b5ed8c",
+      "9.999999999999997e-7"
+    ],
+    [
+      "3eb0c6f7a0b5ed8d",
+      "0.000001"
+    ],
+    [
+      "41b3de4355555553",
+      "333333333.3333332"
+    ],
+    [
+      "41b3de4355555554",
+      "333333333.33333325"
+    ],
+    [
+      "41b3de4355555555",
+      "333333333.3333333"
+    ],
+    [
+      "41b3de4355555556",
+      "333333333.3333334"
+    ],
+    [
+      "41b3de4355555557",
+      "333333333.33333343"
+    ],
+    [
+      "becbf647612f3696",
+      "-0.0000033333333333333333"
+    ],
+    [
+      "43143ff3c1cb0959",
+      "1424953923781206.2"
+    ]
+  ],
+  "documents": [
+    {
+      "about": "The example of RFC 8785, 3.2.2 to 3.2.4: numbers, a string's escapes, literals, key order.",
+      "json": "{\n  \"numbers\": [333333333.33333329, 1E30, 4.50, 2e-3, 0.000000000000000000000000001],\n  \"string\": \"\\u20ac$\\u000F\\u000aA'\\u0042\\u0022\\u005c\\\\\\\"\\/\",\n  \"literals\": [null, true, false]\n}",
+      "canonical": "{\"literals\":[null,true,false],\"numbers\":[333333333.3333333,1e+30,4.5,0.002,1e-27],\"string\":\"€$\\u000f\\nA'B\\\"\\\\\\\\\\\"/\"}",
+      "sha256": "2d5e01a318d0f0879ab568c4be289c8b1f64ef8921a53c6277d5e069978baacb"
+    },
+    {
+      "about": "Keys are sorted by their UTF-16 code units (RFC 8785, 3.2.3), so U+1F600 (a surrogate pair, D83D DE00) comes before U+FB33.",
+      "json": "{\"\\u20ac\": 1, \"\\r\": 2, \"\\ufb33\": 3, \"1\": 4, \"\\ud83d\\ude00\": 5, \"\\u0080\": 6, \"\\u00f6\": 7}",
+      "canonical": "{\"\\r\":2,\"1\":4,\"\":6,\"ö\":7,\"€\":1,\"😀\":5,\"דּ\":3}",
+      "sha256": "0d922ac8e15a6d17d5d50fab064983e86009ebae7b5998cbfc4ed172e6ff74a9"
+    },
+    {
+      "about": "A number is written as its value, however the document wrote it: 6.0 and 6 are the same, -0 is 0.",
+      "json": "[6.0, 6, -0.0, 0.035, 1e21, 1e-7, 123456789012345680000, -2.5e-6, 5291300.0, 612.40, 1.0E+2]",
+      "canonical": "[6,6,0,0.035,1e+21,1e-7,123456789012345680000,-0.0000025,5291300,612.4,100]",
+      "sha256": "0fcfeb9e339025d4a80f42006ad35966592640ccb73f0794cae3f5e970594879"
+    },
+    {
+      "about": "Whitespace and key order of the document do not count; nested objects are sorted at every level; text is kept as it is, not normalised (ü as one code point and as u + U+0308 stay different).",
+      "json": "{ \"b\" : { \"z\" : [ ] , \"a\" : { } } ,\n\t\"a\" : \"Stra\\u00dfe, T\\u00fcr, Tu\\u0308r\" , \"\" : null }",
+      "canonical": "{\"\":null,\"a\":\"Straße, Tür, Tür\",\"b\":{\"a\":{},\"z\":[]}}",
+      "sha256": "44e4da4e5487268626080c1a42695dc583163c4bb551e45314fa182704a46bcf"
+    },
+    {
+      "about": "Control characters are escaped as RFC 8785 3.2.2.2 says: \\b \\t \\n \\f \\r by their short forms, the others as \\u00xx in lower case; U+007F, U+2028 and the solidus are not escaped.",
+      "json": "{\"text\": \"\\u0000\\u0001\\b\\t\\n\\u000b\\f\\r\\u001f \\u007f\\u2028/\"}",
+      "canonical": "{\"text\":\"\\u0000\\u0001\\b\\t\\n\\u000b\\f\\r\\u001f  /\"}",
+      "sha256": "6392def2142cd8598f3334fd9d7f60d30a7e6cb79be12af750f7681495bc39bd"
+    }
+  ]
+}

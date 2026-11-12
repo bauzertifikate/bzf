@@ -4,10 +4,11 @@ BZF (Bauzertifikate Format) describes buildings in JSON: their geometry, constru
 renovation plans and the documents issued about them. Initiated by Bauzertifikate, it is open to independent
 implementations, contributions and forks. Using BZF does not require a Bauzertifikate app, account or calculation service.
 
-This is the canonical repository for the specification, JSON Schemas, fictional examples and conformance tests.
+This is the canonical repository for the specification, JSON Schemas, fictional examples, conformance tests and
+the `bzf` program that checks, packs and signs projects ("Checking").
 The schemas are the source of truth; implementations derive their own calculation models from them.
 
-**Specification edition: 0.2.0.** [CHANGELOG.md](CHANGELOG.md) lists what changed since 0.1.0. The document schemas
+**Specification edition: 0.3.0.** [CHANGELOG.md](CHANGELOG.md) lists what changed since 0.1.0. The document schemas
 describe BZF 1.x. Some schemas are stable and others are drafts, as listed below. Drafts can still change
 incompatibly before specification 1.0; stable schemas retain their compatibility promise. Pin a release tag or
 commit for reproducible integrations. See [VERSIONING.md](VERSIONING.md) for versioning and compatibility, and [CONTRIBUTING.md](CONTRIBUTING.md) to contribute.
@@ -55,8 +56,9 @@ BZF data comes in three forms. The documents are the same in all three.
 | A `.bzf` file | A whole project in one file, `Haus am Hang.bzf`: a ZIP archive of the project folder | Handing a building over, uploading it, archiving it |
 | A project folder | The documents under `Daten/`, the received files, the issues, the results and the store, marked by its project file `<Name>.bzfproj` | Working on a project, alone or with several apps and devices |
 
-The project folder is what the schemas above describe and what the example shows. The `.bzf` file is a draft until
-an implementation writes and reads it. Its rules:
+The project folder is what the schemas above describe and what the example shows. The `.bzf` file is written and
+read by the `bzf` program in this repository ("Checking"), and [`examples/Haus am Hang.bzf`](examples/) is the
+example project as a share. Its rules:
 
 - **Container.** A ZIP archive within the limits of ISO/IEC 21320-1: each entry stored or deflated, no encryption,
   no split archives, names in UTF-8 with `/` between their parts.
@@ -65,13 +67,22 @@ an implementation writes and reads it. Its rules:
   `.bzf` file's own name, and an app that unpacks the file names the project file after it.
 - **With or without history.** With the store, the file is a full copy of the project and its history. Without it,
   the file is a snapshot: the documents as they are, and no earlier state.
-- **Reading.** A reader takes the documents from `Daten/` in the archive, as it does in a folder. It MUST refuse an
-  entry whose name is absolute or has a `..` part, and MUST NOT write outside the folder it unpacks into.
+- **Reading.** A reader takes the documents from `Daten/` in the archive, as it does in a folder. It MUST NOT write
+  outside the folder it unpacks into, and MUST refuse the whole archive, unpacking nothing, for one entry
+  - whose name is absolute (a leading `/`, a drive letter), has a backslash or a control character, or has a part
+    that is `..`, `.` or empty;
+  - that is encrypted, is a link, or is compressed by a method other than stored or deflated;
+  - whose name another entry has too, compared without regard to case, or which lies under a name that is a file.
+
+  A reader SHOULD limit how much it unpacks from one archive, whatever sizes the archive states: the `bzf` program
+  stops at 1 GiB.
 - **Writing.** A `.bzf` file is written whole and never changed in place. Work happens in a project folder: an app
   unpacks the file into one and packs a new file from it.
 - **Passing on.** A `.bzf` file that leaves the organisation is a share ("Privacy"): it holds only documents and
   files of the class `building`, and no store, because the store's objects include every document the project ever
-  held, those about people and money too.
+  held, those about people and money too. A share holds exactly: the project file, the documents under `Daten/` of
+  the class `building`, the received files that `received.json` names, and the result records with the signatures
+  beside them. It holds nothing from `Versendet/`, whose issues name recipients.
 
 Project folders written under edition 0.1 have their project file as `<Name>.bzf`. A reader accepts both names and
 tells such a file from an archive by its first bytes: the project file is JSON and starts with `{`, an archive
@@ -81,8 +92,10 @@ revision it writes, never on opening.
 ## Scope
 
 In the spec: the building model's documents, the project folder with its project file and its store (objects,
-canonical JSON, revisions, heads, merge, received files), the project as one `.bzf` file, and the envelope of results
-and issued documents (which revision, which kernel version, to whom), and the rules that turn a building document's
+canonical JSON, revisions, heads, merge, received files), how a document is named by its hash
+([HASHES.md](HASHES.md)), the project as one `.bzf` file, the envelope of results and issued documents (which
+revision, which kernel version, to whom), signatures over a result ([SIGNATURES.md](SIGNATURES.md), a draft), and
+the rules that turn a building document's
 walls, slabs, roof plates and openings into solids ([SOLIDS.md](SOLIDS.md), a draft; the solids themselves are
 derived and never stored). Not in it: our kernel and the builders that
 derive figures from the model (envelope, areas, quantities, U-values, the DIN/TS 18599 balance are never stored in
@@ -134,12 +147,15 @@ So every program that works on a project can add to it, whatever it reads of it.
   An issue's figures record that document. They are not inputs to another calculation.
 - **Results beside the model** (a draft). A program that keeps what a method worked out writes a result record,
   `Ergebnisse/<app>/<title>/ergebnis.json` ([`result.json`](schema/bzf/1/result.json)): the figures per state, the
-  documents they were made from (path → the hash of the document's canonical JSON), the method, the program and
+  documents they were made from (path → the hash of the document's canonical JSON, [HASHES.md](HASHES.md)), the
+  method, the program and
   kernel version, how the program was set (`choices`) and what the method assumed where the model was silent
   (`assumptions`). Its program replaces it whenever it calculates again; nothing else writes it, and no document
   under `Daten/` refers to it.
   - **Current or stale.** A result is current while each document it names still has the hash it names, whatever
-    else in the project changed since. Any reader can tell this without the program that wrote the result. A result
+    else in the project changed since, and stale once one of them has another. Any reader can tell this without
+    the program that wrote the result. Where a document it names is not there, as in a share that leaves a
+    program's settings behind, the reader cannot tell and says so; it does not call the result stale. A result
     that names no documents is current only at its revision.
   - **Three places for a value.** A fact about the building is in the building document. A setting of the program
     is in the program's own document, which the result then names among its inputs, or in the result's `choices`.
@@ -151,11 +167,12 @@ So every program that works on a project can add to it, whatever it reads of it.
   - **What a result shows.** That nothing changed since it was written (the hashes), and what it was made from and
     with. A program of the same version gives the same figures from the same inputs; another version or another
     program may differ within the method's tolerance. A result record does not show that its figures are right.
-  - **Signatures (reserved, not specified).** A file `ergebnis.<name>.jws` beside a result record is reserved for a
-    detached signature over that record's canonical JSON; several may lie beside one record. The profile is to
-    follow JAdES (ETSI TS 119 182-1) and is written down once an implementation signs and verifies. A signature
-    states who signed, and nothing about that person's or organisation's entitlement to issue. Until the profile
-    is specified, a reader ignores these files and a writer that replaces a result record removes them.
+  - **Signatures** (a draft, [SIGNATURES.md](SIGNATURES.md)). A file `ergebnis.<name>.jws` beside a result record
+    is a detached signature over that record's canonical JSON: a JSON Web Signature (ES256) that carries the
+    signer's certificate. Several may lie beside one record. A signature states who signed and that the record is
+    unchanged since, and nothing about that person's or organisation's entitlement to issue; whether the
+    certificate is to be believed is the reader's decision. A writer that replaces a result record removes the
+    signatures beside it, and a reader that does not verify signatures ignores them.
 - **One state.** A building document describes the building as it stands, in every revision. Work under way belongs
   to that state: an item's `phase` says whether it stands and stays (`existing`), stands and is being removed
   (`demolished`) or is being built (`new`: a building in planning, an extension under construction). What is planned
@@ -205,7 +222,7 @@ These rules apply from specification edition 0.x onward. A reader or writer of b
    needs a newer one than the schema versions say.
 
 Versions: the store format (`bzf/1` in the project file and every revision) changes with the folder or the store; each
-document's `schema` (`"1.0"`) changes with the document, a minor version only adding; the spec edition (`0.2.0`
+document's `schema` (`"1.0"`) changes with the document, a minor version only adding; the spec edition (`0.3.0`
 now) changes with the text. A stable schema changes only by additions within its major version.
 
 ## Checking
@@ -223,7 +240,36 @@ The check does not require any Bauzertifikate application or private repository.
 
 The optional `BZF_DOCUMENTS` environment variable points to implementation-generated fixtures. The fixture layout
 is described in `tools/check/tests/documents.rs`; without it, the independent schema and example tests still run.
-This is a conformance test suite, not yet a general-purpose `bzf check` command-line validator.
+
+### The `bzf` program
+
+`tools/bzf` is a program for a project of your own, and a library (Rust) with the same rules. It needs no
+Bauzertifikate app, account or service and fetches nothing.
+
+```sh
+cargo install --locked --path tools/bzf     # or: cd tools && cargo run -p bzf -- <command>
+
+bzf check "examples/Haus am Hang.bzf"       # a folder or a .bzf file
+bzf pack --share examples/haus-am-hang "Haus am Hang.bzf"
+bzf unpack "Haus am Hang.bzf" haus
+bzf hash examples/haus-am-hang/Daten/received.json
+bzf verify examples/haus-am-hang/Ergebnisse/Energieberatung/Energieausweis/ergebnis.json
+```
+
+| Command | What it does |
+|---|---|
+| `bzf check <folder \| file.bzf>` | Checks the project file, every document under `Daten/` against its schema, the references between documents, each result (current, stale or not to be told; its signatures) and each issue (its result and inputs). Ends with 1 if a rule is broken |
+| `bzf pack [--history \| --share] <folder> <file.bzf>` | Writes the folder as one `.bzf` file: a snapshot without the store, `--history` with it, `--share` only what may leave the organisation |
+| `bzf unpack <file.bzf> <folder>` | Unpacks into a folder that is new or empty, refusing what the rules for reading refuse |
+| `bzf hash <document.json>` | The hash that results and issues name the document by ([HASHES.md](HASHES.md)) |
+| `bzf sign <ergebnis.json> --name … --key … --cert …` | Signs a result record ([SIGNATURES.md](SIGNATURES.md)) |
+| `bzf verify <ergebnis.json>` | Verifies the signatures beside a result record and names who signed. Ends with 1 if one does not hold |
+| `bzf version` | The specification edition the program checks by |
+
+It ends with 0 when all is well, 1 when a rule is broken or a signature does not hold, and 2 when it could not
+do what was asked (a file missing, a wrong argument). What `bzf check` does not check yet: the store under
+`.bauzertifikate/` (objects against their hashes, revisions, heads) and the contents of the apps' own documents,
+which it lists as notes.
 
 The check also covers the expected solids in [`examples/solids/`](examples/solids/): each solid closed and looking
 outwards, lying where the building document puts its item, every item covered or its absence explained by a rule,
@@ -231,7 +277,9 @@ and the volumes compared with figures worked out by hand. It does this without t
 [SOLIDS.md](SOLIDS.md) has the rules and the tolerance.
 
 [`examples/haus-am-hang/`](examples/haus-am-hang/) is a fictional house of 1968, with a gas boiler, consumption,
-an issued certificate, renovation steps, costs and consent records.
+an issued certificate, renovation steps, costs and consent records, two result records, one of them made with a
+program's settings document and signed by a made-up Energieberater. `examples/Haus am Hang.bzf` is that project as
+`bzf pack --share` writes it: the building, without the people, the costs and the issues.
 [`examples/werkstatt-am-bach/`](examples/werkstatt-am-bach/) is a fictional workshop of 1995, a building document
 only, drawn for the solids' rules: inner walls, a separation line, a monopitch roof plate with an overhang. People,
 projects and records in the examples are fictional. Referenced photographs, plans, invoices and issued PDFs are not
@@ -269,4 +317,5 @@ Anlagentechnik, Sanierungsschritte und ausgestellte Dokumente als JSON. Andere P
 Bauzertifikate lesen und schreiben. Ein Projekt liegt als Ordner vor oder als einzelne Datei `<Name>.bzf`. Das
 Gebäudedokument beschreibt das Gebäude immer so, wie es steht; geplante Sanierungsschritte stehen im Fahrplan.
 Die Schemas und Beispiele sind frei verfügbar; Beiträge und Forks sind willkommen.
-Die Spezifikation ist in Version 0.2.0, mit ausdrücklich gekennzeichneten stabilen und vorläufigen Teilen.
+Mit dem Programm `bzf` in diesem Repository lässt sich ein Projekt prüfen, packen, entpacken und ein Ergebnis signieren.
+Die Spezifikation ist in Version 0.3.0, mit ausdrücklich gekennzeichneten stabilen und vorläufigen Teilen.

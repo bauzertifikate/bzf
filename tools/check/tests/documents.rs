@@ -5,11 +5,13 @@
 //! Daten/received.json and Versendet/ issue records.
 //!
 //! In the examples, the result records under Ergebnisse/ and the issues are also checked against the documents they
-//! name by hash, with canonical JSON (RFC 8785) written here from the RFC's text.
+//! name by hash. Canonical JSON, the hashes and the rules between documents are the `bzf` library's (../bzf), the
+//! same code the `bzf` program checks a project with.
 
+use bzf::canonical::{canonical, hash};
+use bzf::project::{dangling, later_state, not_as_calculated, not_current as stale, not_the_roadmaps};
 use jsonschema::{Draft, Registry, Validator};
 use serde_json::{Value, json};
-use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -334,9 +336,12 @@ fn the_examples() {
         let mut documents = BTreeMap::new();
         for file in all_files(&daten) {
             let path = file.strip_prefix(&daten).unwrap().to_string_lossy().replace('\\', "/");
-            let schema = schema_of(&path).unwrap_or_else(|| panic!("{}: no schema for {path}", project.display()));
             let doc = read(&file);
-            check(schema, &file, &doc);
+            // A program's own document has no schema here; a result may still name it, by the same hash.
+            match schema_of(&path) {
+                Some(schema) => check(schema, &file, &doc),
+                None => assert!(path.contains('/'), "{}: no schema for {path}", project.display()),
+            }
             documents.insert(path, doc);
         }
         // The result records, by the hash an issue names them by.
@@ -376,115 +381,6 @@ fn the_examples() {
     }
     assert!(errors.is_empty(), "{} invalid:\n{}", errors.len(), errors.join("\n"));
     assert!(checked > 0, "no examples");
-}
-
-/// `value` as canonical JSON (RFC 8785), the form a document's hash is taken of: object keys sorted by their UTF-16
-/// code units, no whitespace, numbers as ECMAScript writes them, strings with JSON's shortest escapes.
-fn canonical(value: &Value) -> String {
-    match value {
-        Value::Number(n) => n.as_f64().map_or_else(|| n.to_string(), number),
-        Value::Array(items) => format!("[{}]", items.iter().map(canonical).collect::<Vec<_>>().join(",")),
-        Value::Object(map) => {
-            let mut entries: Vec<_> = map.iter().collect();
-            entries.sort_by(|a, b| a.0.encode_utf16().cmp(b.0.encode_utf16()));
-            let entries = entries.iter().map(|(k, v)| format!("{}:{}", canonical(&json!(k)), canonical(v)));
-            format!("{{{}}}", entries.collect::<Vec<_>>().join(","))
-        }
-        // serde_json writes null, true, false and strings as RFC 8785 asks: only `"`, `\` and the control characters
-        // escaped, the latter as \b, \t, \n, \f, \r or \u00xx in lower case.
-        other => other.to_string(),
-    }
-}
-
-/// A finite double as ECMAScript's `Number.prototype.toString` writes it: the shortest digits that read back as the
-/// same double, plain from 1e-6 up to 1e21 and in exponent form outside. (Where two shortest digit strings are equally
-/// near, ECMAScript takes the even one and Rust the upper; no number in a building document comes near that.)
-fn number(x: f64) -> String {
-    if x == 0.0 {
-        return "0".into();
-    }
-    let text = format!("{:e}", x.abs());
-    let (mantissa, exponent) = text.split_once('e').unwrap();
-    let digits: String = mantissa.chars().filter(|c| *c != '.').collect();
-    // The value is 0.digits × 10^n, digits being k long.
-    let (k, n) = (digits.len() as i32, exponent.parse::<i32>().unwrap() + 1);
-    let body = if k <= n && n <= 21 {
-        format!("{digits}{}", "0".repeat((n - k) as usize))
-    } else if 0 < n && n <= 21 {
-        format!("{}.{}", &digits[..n as usize], &digits[n as usize..])
-    } else if -6 < n && n <= 0 {
-        format!("0.{}{digits}", "0".repeat(-n as usize))
-    } else {
-        let point = if k > 1 { "." } else { "" };
-        format!("{}{point}{}e{}{}", &digits[..1], &digits[1..], if n > 0 { "+" } else { "" }, n - 1)
-    };
-    format!("{}{body}", if x < 0.0 { "-" } else { "" })
-}
-
-/// The hash a document is named by: the SHA-256 of its canonical JSON.
-fn hash(doc: &Value) -> String {
-    Sha256::digest(canonical(doc).as_bytes()).iter().map(|byte| format!("{byte:02x}")).collect()
-}
-
-/// The inputs of a result or an issue that are no longer the project's documents: changed since, or gone. A result is
-/// current while there are none, whatever else in the project changed.
-fn stale(record: &Value, documents: &BTreeMap<String, Value>) -> Vec<String> {
-    let inputs = record["inputs"].as_object().into_iter().flatten();
-    let changed = inputs.filter(|(path, named)| documents.get(*path).map(hash).as_deref() != named.as_str());
-    changed.map(|(path, _)| path.clone()).collect()
-}
-
-/// Where an issue does not state the result it names: a figure the issue states for a state is the result's figure
-/// for it, the result's inputs are among the issue's, and both name the same method, basis and kernel version.
-fn not_as_calculated(issue: &Value, result: &Value) -> Vec<String> {
-    let mut errors = Vec::new();
-    let calculated = |state: &Value| result["figures"].as_array().into_iter().flatten().find(|f| &f["state"] == state);
-    for issued in issue["figures"].as_array().into_iter().flatten() {
-        let Some(figures) = calculated(&issued["state"]) else {
-            errors.push(format!("the result has no figures for {}", issued["state"]));
-            continue;
-        };
-        for (key, value) in issued.as_object().into_iter().flatten() {
-            if figures.get(key) != Some(value) {
-                errors.push(format!("{} {key}: issued {value}, calculated {:?}", issued["state"], figures.get(key)));
-            }
-        }
-    }
-    for (path, named) in result["inputs"].as_object().into_iter().flatten() {
-        if issue["inputs"].get(path) != Some(named) {
-            errors.push(format!("the result was made from another {path}"));
-        }
-    }
-    for key in ["method", "basis", "kernelVersion"] {
-        if issue.get(key).is_some() && result.get(key).is_some() && issue[key] != result[key] {
-            errors.push(format!("{key}: issued {}, calculated {}", issue[key], result[key]));
-        }
-    }
-    errors
-}
-
-/// Where a result of a roadmap is not that roadmap's: the roadmap is one of its inputs, a state it has figures for is
-/// the building as it stands, the target or one of the roadmap's steps, and it was calculated by the method the
-/// roadmap rests on.
-fn not_the_roadmaps(result: &Value, documents: &BTreeMap<String, Value>) -> Vec<String> {
-    let Some(id) = result.get("roadmap").and_then(Value::as_str) else { return Vec::new() };
-    let path = format!("roadmaps/{id}.json");
-    let (Some(roadmap), true) = (documents.get(&path), result["inputs"].get(&path).is_some()) else {
-        return vec![format!("{path} is not among its inputs")];
-    };
-    let mut errors = Vec::new();
-    let steps: Vec<&Value> = roadmap["steps"].as_array().into_iter().flatten().map(|step| &step["id"]).collect();
-    for figures in result["figures"].as_array().into_iter().flatten() {
-        let state = &figures["state"];
-        if state != "current" && state != "target" && !steps.contains(&state) {
-            errors.push(format!("figures for {state}, which is no step of the roadmap"));
-        }
-    }
-    let planned = &roadmap["assumptions"]["method"];
-    if planned.is_string() && result.get("method").is_some() && planned != &result["method"] {
-        errors.push(format!("calculated by {}, the roadmap rests on {planned}", result["method"]));
-    }
-    errors
 }
 
 /// Canonical JSON against the example of RFC 8785 (section 3.2.2 and 3.2.3) and the number forms a document meets.
@@ -556,68 +452,6 @@ fn project_files(dir: &Path) -> Vec<PathBuf> {
         _ => false,
     };
     files(dir).into_iter().filter(is_project_file).collect()
-}
-
-/// The items a planned step adds that a building document already holds. The building is the building as it stands,
-/// so what a planned step is still to add is not in it.
-fn later_state(documents: &BTreeMap<String, Value>) -> Vec<String> {
-    let mut held = std::collections::HashSet::new();
-    for (_, doc) in documents.iter().filter(|(p, _)| p.starts_with("buildings/")) {
-        walk(doc, &mut String::new(), &mut |_, v| {
-            if let Some(id) = v.get("id").and_then(Value::as_str) {
-                held.insert(id.to_string());
-            }
-        });
-    }
-    let mut found = Vec::new();
-    for (path, doc) in documents.iter().filter(|(p, _)| p.starts_with("roadmaps/")) {
-        // A step is planned where its status is left out.
-        let planned = |step: &&Value| step.get("status").is_none_or(|s| s.as_str() == Some("planned"));
-        for step in doc["steps"].as_array().into_iter().flatten().filter(planned) {
-            let measures = step["measures"].as_array().into_iter().flatten();
-            for change in measures.flat_map(|m| m["changes"].as_array().into_iter().flatten()) {
-                let added = change["item"]["id"].as_str().filter(|_| change["op"] == "add");
-                if let Some(id) = added.filter(|id| held.contains(*id)) {
-                    found.push(format!("{path}: a planned step adds {id}, which a building already holds"));
-                }
-            }
-        }
-    }
-    found
-}
-
-/// The ids roadmaps and costs refer to that no document of the project has.
-fn dangling(documents: &BTreeMap<String, Value>) -> Vec<String> {
-    let mut ids = std::collections::HashSet::new();
-    for doc in documents.values() {
-        walk(doc, &mut String::new(), &mut |_, v| {
-            if let Some(id) = v.get("id").and_then(Value::as_str) {
-                ids.insert(id.to_string());
-            }
-        });
-    }
-    let mut found = Vec::new();
-    for (path, doc) in documents.iter().filter(|(p, _)| p.starts_with("roadmaps/") || p.starts_with("costs/")) {
-        let mut refs = Vec::new();
-        for step in doc["steps"].as_array().into_iter().flatten() {
-            for measure in step["measures"].as_array().into_iter().flatten() {
-                refs.extend(measure["affects"].as_array().into_iter().flatten().cloned());
-                for change in measure["changes"].as_array().into_iter().flatten() {
-                    refs.extend([&change["target"], &change["into"]].into_iter().filter(|v| v.is_string()).cloned());
-                }
-            }
-        }
-        refs.extend([&doc["building"], &doc["roadmap"]].into_iter().filter(|v| v.is_string()).cloned());
-        for measure in doc["measures"].as_array().into_iter().flatten() {
-            refs.push(measure["measure"].clone());
-        }
-        for id in refs.iter().filter_map(Value::as_str) {
-            if !ids.contains(id) {
-                found.push(format!("{path} refers to {id}, which no document has"));
-            }
-        }
-    }
-    found
 }
 
 /// Every file under `dir`, at any depth, sorted.
