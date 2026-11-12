@@ -1,21 +1,5 @@
 # Changelog
 
-## Unreleased
-
-### The solids of a building
-
-- [SOLIDS.md](SOLIDS.md), a draft: the rules that turn a building document's walls, slabs, roof plates and openings
-  into solids. Wall faces from the placement, mitred and square ends, ends cut back at a wall running past, bottom
-  and top, the roof's cut, openings, layers, slabs, roof plates, items made of elements, and the items that have no
-  solid. Its limits are stated: straight walls, planar roof plates, rectangular openings.
-- `examples/solids/`: the expected solids of the example buildings, one file per building, with the items that have
-  no solid and the rule that leaves each without. Tolerance: corners within 1 mm, volumes within 0.1 %.
-- `examples/werkstatt-am-bach/`: a second fictional example, a workshop of 1995, for the rules the house does not
-  exercise.
-- `./check.sh` checks the expected solids without the program that made them (`tools/check/tests/solids.rs`): closed,
-  looking outwards, where the document puts the item, every item covered or explained, volumes against figures
-  worked out by hand.
-
 ## 0.2.0 — 2026-11-12
 
 ### A project in one file
@@ -70,6 +54,20 @@ was recorded stays a done step without changes.
 
 - The tests accept a project file under both names, cover `appliedSteps`, and check in the examples that no planned
   step adds an item the building document already holds.
+
+### The solids of a building
+
+- [SOLIDS.md](SOLIDS.md), a draft: the rules that turn a building document's walls, slabs, roof plates and openings
+  into solids. Wall faces from the placement, mitred and square ends, ends cut back at a wall running past, bottom
+  and top, the roof's cut, openings, layers, slabs, roof plates, items made of elements, and the items that have no
+  solid. Its limits are stated: straight walls, planar roof plates, rectangular openings.
+- `examples/solids/`: the expected solids of the example buildings, one file per building, with the items that have
+  no solid and the rule that leaves each without. Tolerance: corners within 1 mm, volumes within 0.1 %.
+- `examples/werkstatt-am-bach/`: a second fictional example, a workshop of 1995, for the rules the house does not
+  exercise.
+- `./check.sh` checks the expected solids without the program that made them (`tools/check/tests/solids.rs`): closed,
+  looking outwards, where the document puts the item, every item covered or explained, volumes against figures
+  worked out by hand.
 
 ### Editorial
 
