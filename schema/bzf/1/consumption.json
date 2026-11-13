@@ -47,7 +47,11 @@
         "id": { "$ref": "common.json#/$defs/id" },
         "label": { "description": "Its number or name: \"Gaszähler 7 GMT 123456\".", "type": "string" },
         "carrier": { "$ref": "common.json#/$defs/carrier" },
-        "services": { "description": "What its carrier is used for, where known.", "type": "array", "items": { "$ref": "common.json#/$defs/service" } },
+        "services": {
+          "description": "What its carrier is used for, where known. Where listed, it says whether the amounts of this meter hold the energy that heats water: with `hotWater` they do (a central system that heats water too; a period's `hotWater` gives the share where a bill states it), without it they do not. Where every meter of the document lists its services and none lists `hotWater`, water is heated apart from the consumption recorded here (decentrally, as by electric instantaneous heaters). Where a meter does not list them, whether its amounts hold hot water is not known.",
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/service" }
+        },
         "system": { "description": "The meter in the building's systems, where it is one.", "$ref": "common.json#/$defs/id" },
         "serves": { "description": "The parts or spaces it measures; all of the building where absent.", "type": "array", "items": { "$ref": "common.json#/$defs/id" } }
       },
@@ -71,9 +75,32 @@
           "anyOf": [{ "enum": ["reading", "bill", "estimate"] }, { "$ref": "common.json#/$defs/newerValue" }],
           "default": "bill"
         },
-        "source": { "description": "Where it came from: the bill among the received files.", "$ref": "common.json#/$defs/source" }
+        "source": { "description": "Where it came from: the bill among the received files.", "$ref": "common.json#/$defs/source" },
+        "calorificBasis": {
+          "description": "The calorific basis of the period's energy figures (an `amount` or a `hotWater` share in kWh or MWh, and `calorificValue`), as the bill states it: `gross`, the gross calorific value (Brennwert, Hs), on which gas bills usually state kWh; `net`, the net calorific value (Heizwert, Hi). Absent where the bill does not say; a method then takes its own rule and says which. Since 0.4.",
+          "anyOf": [{ "enum": ["gross", "net"] }, { "$ref": "common.json#/$defs/newerValue" }]
+        },
+        "calorificValue": {
+          "description": "The energy one unit of the amount holds, kWh per `unit` (m³, l, kg, t, rm, srm), on `calorificBasis`, as the bill or the supplier states it: for gas, the billing calorific value times the volume correction factor (Abrechnungsbrennwert × Zustandszahl). Not given for an amount in kWh or MWh. Absent, a method takes a value for the carrier from its own tables. Since 0.4.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "woodType": {
+          "description": "The kind of wood, for log wood (`logWood`) billed by volume (`rm`, `srm`), which decides what a cubic metre weighs: `hardwood` (beech, oak), `softwood` (spruce, pine), `mixed`. Since 0.4.",
+          "anyOf": [{ "enum": ["hardwood", "softwood", "mixed"] }, { "$ref": "common.json#/$defs/newerValue" }]
+        },
+        "hotWater": {
+          "description": "The part of `amount` that heated water, as a bill states it (the hot-water share of a heating cost statement, Heizkostenabrechnung), in `hotWaterUnit` or else the period's `unit`, on the same calorific basis; at most `amount` where both are in one unit. Given only for a meter whose `services` hold `hotWater`. Absent, the share is not stated, which does not mean that it is zero. Since 0.4.",
+          "type": "number",
+          "minimum": 0
+        },
+        "hotWaterUnit": {
+          "description": "The unit of `hotWater` where the bill states the share in another unit than the amount: oil billed in litres, its hot-water share in kWh. Since 0.4.",
+          "anyOf": [{ "enum": ["kWh", "MWh", "m3", "l", "kg", "t", "rm", "srm"] }, { "type": "string" }]
+        }
       },
       "required": ["from", "to", "amount", "unit"],
+      "dependentRequired": { "calorificValue": ["calorificBasis"], "hotWaterUnit": ["hotWater"] },
       "additionalProperties": true
     }
   }

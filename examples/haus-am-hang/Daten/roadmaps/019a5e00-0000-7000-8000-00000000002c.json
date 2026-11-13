@@ -1,5 +1,5 @@
 {
-  "schema": "1.0",
+  "schema": "1.1",
   "id": "019a5e00-0000-7000-8000-00000000002c",
   "label": "Sanierungsfahrplan Haus am Hang",
   "building": "019a5e00-0000-7000-8000-000000000002",
@@ -144,14 +144,27 @@
           "id": "019a5e00-0000-7000-8000-000000000026",
           "label": "Hydraulischer Abgleich",
           "components": [
-            "heating"
+            "distribution"
           ],
           "affects": [
             "019a5e00-0000-7000-8000-00000000001c"
           ],
+          "changes": [
+            {
+              "op": "app",
+              "app": "energieberatung",
+              "change": {
+                "change": "setPlant",
+                "slot": "heatingDistribution",
+                "field": "hydraulicBalance",
+                "value": "balanced"
+              }
+            }
+          ],
           "trades": [
             "Heizungsbauer"
-          ]
+          ],
+          "description": "Heizkreis hydraulisch abgleichen (Verfahren B), Thermostatventile mit Voreinstellung."
         }
       ]
     },
@@ -189,14 +202,19 @@
                   {
                     "material": {
                       "name": "Silikatputz",
-                      "lambda": 0.7
+                      "lambda": 0.7,
+                      "mu": 60
                     },
                     "thickness": 0.01
                   },
                   {
                     "material": {
                       "name": "EPS WLS 032",
-                      "lambda": 0.032
+                      "lambda": 0.032,
+                      "mu": [
+                        20,
+                        50
+                      ]
                     },
                     "thickness": 0.16
                   },
@@ -204,7 +222,11 @@
                     "material": {
                       "name": "Kalkzementputz",
                       "lambda": 1.0,
-                      "density": 1800
+                      "density": 1800,
+                      "mu": [
+                        15,
+                        35
+                      ]
                     },
                     "thickness": 0.02
                   },
@@ -212,7 +234,11 @@
                     "material": {
                       "name": "Hochlochziegel",
                       "lambda": 0.5,
-                      "density": 1200
+                      "density": 1200,
+                      "mu": [
+                        5,
+                        10
+                      ]
                     },
                     "thickness": 0.3
                   },
@@ -220,7 +246,8 @@
                     "material": {
                       "name": "Kalkgipsputz",
                       "lambda": 0.7,
-                      "density": 1400
+                      "density": 1400,
+                      "mu": 10
                     },
                     "thickness": 0.015
                   }

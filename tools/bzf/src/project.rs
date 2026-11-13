@@ -193,6 +193,81 @@ pub fn dangling(documents: &BTreeMap<String, Value>) -> Vec<String> {
     found
 }
 
+/// The kinds of change every reader of edition 0.3 and later applies to the building document.
+pub const BUILDING_OPS: [&str; 3] = ["set", "add", "remove"];
+
+/// What a reader can tell of a roadmap's states (README, "Changes over time"): `current`, the state after each step
+/// that is not done or declined, in order, and `target`, each with whether the reader can derive it. `ops` are the
+/// kinds of change it applies to the building document ([`BUILDING_OPS`]); `apps` are the apps whose own changes
+/// (op `app`) it applies, and only those whose documents it has. From the first step holding a change it cannot apply,
+/// or a step of a status it does not know, every state is unknown to it, the target too. Done and declined steps are
+/// never applied, so their changes leave no state unknown.
+pub fn states(roadmap: &Value, ops: &[&str], apps: &[&str]) -> Vec<(String, bool)> {
+    let applies = |change: &Value| match change["op"].as_str() {
+        Some("app") => change["app"].as_str().is_some_and(|app| apps.contains(&app)) && change["change"].is_object(),
+        Some(op) => ops.contains(&op),
+        None => false,
+    };
+    let mut known = true;
+    let mut states = vec![("current".to_string(), true)];
+    for step in roadmap["steps"].as_array().into_iter().flatten() {
+        let status = step.get("status").map_or(Some("planned"), Value::as_str);
+        if matches!(status, Some("done" | "declined")) {
+            continue;
+        }
+        let changes = step["measures"].as_array().into_iter().flatten().flat_map(|m| m["changes"].as_array());
+        known = known && status == Some("planned") && changes.flatten().all(applies);
+        states.push((step["id"].as_str().unwrap_or_default().to_string(), known));
+    }
+    states.push(("target".to_string(), known));
+    states
+}
+
+/// What a document says against itself that its schema cannot catch: the parts of an inhomogeneous layer that do not
+/// add up to the whole layer, a pair of μ values whose first is the higher, a hot-water share larger than the amount
+/// it is part of.
+pub fn inconsistent(documents: &BTreeMap<String, Value>) -> Vec<String> {
+    let mut found = Vec::new();
+    for (path, doc) in documents.iter().filter(|(path, _)| schema_of(path).is_some()) {
+        each(doc, &mut |value| {
+            let layers = value.get("layers").and_then(Value::as_array).into_iter().flatten();
+            for layer in layers {
+                let parts = layer.get("parts").and_then(Value::as_array);
+                let fractions: Vec<f64> = parts.into_iter().flatten().filter_map(|p| p["fraction"].as_f64()).collect();
+                let sum: f64 = fractions.iter().sum();
+                if !fractions.is_empty() && (sum - 1.0).abs() > 1e-6 {
+                    found.push(format!("{path}: the parts of a layer add up to {sum}, not 1"));
+                }
+                let materials =
+                    std::iter::once(&layer["material"]).chain(parts.into_iter().flatten().map(|p| &p["material"]));
+                for material in materials {
+                    if let Some([lower, upper]) = material["mu"].as_array().map(Vec::as_slice)
+                        && lower.as_f64() > upper.as_f64()
+                    {
+                        found.push(format!("{path}: {} has μ {lower}/{upper}, the lower value last", material["name"]));
+                    }
+                }
+            }
+        });
+        if !path.starts_with("consumption/") {
+            continue;
+        }
+        for period in doc["periods"].as_array().into_iter().flatten() {
+            let (Some(amount), Some(share)) = (period["amount"].as_f64(), period["hotWater"].as_f64()) else {
+                continue;
+            };
+            let same_unit = period.get("hotWaterUnit").is_none_or(|unit| unit == &period["unit"]);
+            if same_unit && share > amount {
+                found.push(format!(
+                    "{path}: the period from {} has a hot-water share of {share}, more than its amount {amount}",
+                    period["from"]
+                ));
+            }
+        }
+    }
+    found
+}
+
 /// The result records of a project by their paths, with the signature files beside each by their names.
 pub fn results(tree: &Tree) -> Vec<(&str, Vec<(&str, &str)>)> {
     let records = tree.keys().filter(|path| path.starts_with("Ergebnisse/") && path.ends_with("/ergebnis.json"));
@@ -265,6 +340,7 @@ pub fn check(tree: &Tree, schemas: &Schemas) -> Report {
     let documents = documents(tree);
     report.errors.extend(dangling(&documents));
     report.errors.extend(later_state(&documents));
+    report.errors.extend(inconsistent(&documents));
 
     let mut held = BTreeMap::new();
     for (path, signatures) in results(tree) {

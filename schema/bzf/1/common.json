@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://bauzertifikate.de/schema/bzf/1/common.json",
   "title": "bzf common definitions",
-  "description": "What the documents of a bzf project share: ids, hashes, times, dates, versions, points, open values, sources, constructions, products, identifiers, addresses, carriers, services, money and document classes. Lengths in plan are integer millimetres in the project's frame, heights are millimetres relative to its ±0,00, layer thicknesses are metres. Every object keeps the fields a reader doesn't know (additionalProperties: true), and every closed set of values is open: one of the known values, or any other string or object a newer writer wrote, which a reader keeps and writes back unchanged.",
+  "description": "What the documents of a bzf project share: ids, hashes, times, dates, versions, points, open values, sources, constructions and their layers, products, identifiers, addresses, carriers, services, money and document classes. Lengths in plan are integer millimetres in the project's frame, heights are millimetres relative to its ±0,00, layer thicknesses are metres. Every object keeps the fields a reader doesn't know (additionalProperties: true), and every closed set of values is open: one of the known values, or any other string or object a newer writer wrote, which a reader keeps and writes back unchanged.",
   "x-bzf-status": "stable",
   "$defs": {
     "id": {
@@ -98,6 +98,13 @@
         "lambda": { "description": "Thermal conductivity, W/(m·K).", "type": "number", "exclusiveMinimum": 0 },
         "density": { "description": "Density, kg/m³.", "type": "number", "minimum": 0 },
         "heatCapacity": { "description": "Specific heat capacity, J/(kg·K): with the density, the thermal capacity the method takes from the layers (EPBD Annex I 4(a)(i)).", "type": "number", "exclusiveMinimum": 0 },
+        "mu": {
+          "description": "Its water vapour diffusion resistance factor μ (EN ISO 10456; DIN 4108-3 takes it for the moisture check), dimensionless, at least 1 (still air): one value, or the two a catalogue states for one material, `[lower, upper]` (DIN 4108-4 prints them as \"5/10\"), of which a method takes the one it needs (DIN 4108-3 the one less favourable for the layer's position). Since 0.4.",
+          "anyOf": [
+            { "type": "number", "minimum": 1 },
+            { "type": "array", "prefixItems": [{ "type": "number", "minimum": 1 }, { "type": "number", "minimum": 1 }], "items": false, "minItems": 2 }
+          ]
+        },
         "catalogue": { "description": "The catalogue it came from, by name and edition: \"DIN 4108-4:2020-11\".", "type": "string" },
         "row": { "description": "The catalogue's row.", "type": "string" },
         "product": { "$ref": "#/$defs/product" }
@@ -105,14 +112,45 @@
       "additionalProperties": true
     },
     "layer": {
-      "description": "A layer of a construction: a material and its thickness.",
+      "description": "A layer of a construction: a material and its thickness; or, since 0.4, a layer of several materials side by side (`parts`) or an air layer (`air`).",
       "type": "object",
       "properties": {
         "material": { "$ref": "#/$defs/material" },
-        "thickness": { "description": "Metres (a 0,2 mm vapour barrier has one).", "type": "number", "minimum": 0 }
+        "thickness": { "description": "Metres (a 0,2 mm vapour barrier has one).", "type": "number", "minimum": 0 },
+        "parts": {
+          "description": "An inhomogeneous layer (EN ISO 6946): the materials that lie side by side in it, each through the layer's whole thickness and over its fraction of the area, as rafters and the insulation between them, or beams and the air between them. The fractions add up to 1. A reader that knows `parts` takes the layer as its parts and none of the values of the layer's own `material`, which then names the layer as a whole (\"Sparren mit Mineralwolle\") and SHOULD have no `lambda`, so that a reader that does not know `parts` finds the layer's conductivity not given rather than a wrong one. How the parts are combined (EN ISO 6946's upper and lower limits) is the method's. Since 0.4.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/layerPart" },
+          "minItems": 2
+        },
+        "air": {
+          "description": "The layer is an air layer, and this is how it exchanges air with the outside (EN ISO 6946, 6.9). Since 0.4.",
+          "$ref": "#/$defs/airLayer"
+        },
+        "airOpenings": {
+          "description": "An air layer's openings to the outside air, as measured: mm² per metre of the layer's length for a vertical layer, per m² of its area for a horizontal one (EN ISO 6946, 6.9). A `slightlyVentilated` layer's resistance is interpolated by it; given with `air` only. Since 0.4.",
+          "type": "number",
+          "minimum": 0
+        }
       },
       "required": ["material", "thickness"],
+      "dependentRequired": { "airOpenings": ["air"] },
       "additionalProperties": true
+    },
+    "layerPart": {
+      "description": "A part of an inhomogeneous layer: its share of the layer's area and its material, or an air cavity (`air`, with a material that names it and has no `lambda`). Since 0.4.",
+      "type": "object",
+      "properties": {
+        "fraction": { "description": "Its share of the layer's area, as a fraction.", "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "material": { "$ref": "#/$defs/material" },
+        "air": { "description": "The part is an air cavity, and how it exchanges air with the outside.", "$ref": "#/$defs/airLayer" }
+      },
+      "required": ["fraction", "material"],
+      "additionalProperties": true
+    },
+    "airLayer": {
+      "description": "How an air layer or cavity exchanges air with the outside (EN ISO 6946, 6.9): `unventilated` (closed, or openings of at most 500 mm² per metre of length for a vertical layer, per m² of area for a horizontal one), `slightlyVentilated` (over 500 and under 1500 mm²), `wellVentilated` (1500 mm² or more: the layer and every layer outside it then drop out of the thermal resistance). Its thermal resistance follows from its thickness, the direction of heat flow and this, by the method; its material SHOULD have no `lambda`. Since 0.4.",
+      "anyOf": [{ "enum": ["unventilated", "slightlyVentilated", "wellVentilated"] }, { "$ref": "#/$defs/newerValue" }]
     },
     "construction": {
       "description": "A build-up that walls, slabs and roofs refer to by id: its layers, outside to inside.",
@@ -205,12 +243,16 @@
       "anyOf": [{ "enum": ["heating", "hotWater", "cooling", "ventilation", "lighting"] }, { "$ref": "#/$defs/newerValue" }]
     },
     "money": {
-      "description": "An amount of money, with its currency (ISO 4217) and whether it includes VAT.",
+      "description": "An amount of money, with its currency (ISO 4217), whether it includes VAT and where it comes from.",
       "type": "object",
       "properties": {
         "amount": { "type": "number" },
         "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "default": "EUR" },
-        "gross": { "description": "Whether it includes VAT.", "type": "boolean", "default": true }
+        "gross": { "description": "Whether it includes VAT.", "type": "boolean", "default": true },
+        "source": {
+          "description": "Where this amount comes from: an offer, an invoice or a funding approval among the received files (`file`), a cost database or a published rate (`note`). Where it is absent, the document says what applies (a measure's costs: the measure's `source`). Since 0.4.",
+          "$ref": "#/$defs/source"
+        }
       },
       "required": ["amount"],
       "additionalProperties": true

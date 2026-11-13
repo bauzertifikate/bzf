@@ -9,7 +9,7 @@
 //! same code the `bzf` program checks a project with.
 
 use bzf::canonical::{canonical, hash};
-use bzf::project::{dangling, later_state, not_as_calculated, not_current as stale, not_the_roadmaps};
+use bzf::project::{dangling, inconsistent, later_state, not_as_calculated, not_current as stale, not_the_roadmaps};
 use jsonschema::{Draft, Registry, Validator};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
@@ -309,9 +309,173 @@ fn known_values_are_checked_and_newer_ones_kept() {
     }
 }
 
+/// A building with one construction of `layers`.
+fn construction(layers: Value) -> Value {
+    json!({"schema": "1.2", "id": ID, "constructions": [{"id": ID, "layers": layers}]})
+}
+
+/// A consumption document with one period of gas from the meter `ID`, with `extra` fields.
+fn period(extra: Value) -> Value {
+    let mut period = json!({"meter": ID, "from": "2025-01-01", "to": "2025-12-31", "amount": 2105, "unit": "m3"});
+    period.as_object_mut().unwrap().extend(extra.as_object().unwrap().clone());
+    json!({"schema": "1.1", "id": ID, "building": ID,
+        "meters": [{"id": ID, "carrier": "naturalGas", "services": ["heating", "hotWater"]}], "periods": [period]})
+}
+
+/// A costs document with one measure's costs.
+fn costs(measure: Value) -> Value {
+    json!({"schema": "1.1", "id": ID, "roadmap": ID, "measures": [measure]})
+}
+
+/// The additions of edition 0.4: the change op `app`, a source on money and on funding, the consumption period's
+/// calorific basis and value, wood type and hot-water share, and a layer's parts, air and μ.
+#[test]
+fn the_additions_of_0_4_are_checked() {
+    let s = Schemas::new();
+    let app = |app: Value, change: Value| roadmap(json!({"op": "app", "app": app, "change": change}));
+    let rafters = json!([
+        {"material": {"name": "Dachziegel und Lattung"}, "thickness": 0.06, "air": "wellVentilated"},
+        {"material": {"name": "Unterdeckbahn", "mu": 1}, "thickness": 0.0005},
+        {"material": {"name": "Sparren mit Mineralwolle"}, "thickness": 0.18, "parts": [
+            {"fraction": 0.88, "material": {"name": "Mineralwolle WLS 035", "lambda": 0.035, "mu": 1}},
+            {"fraction": 0.12, "material": {"name": "Konstruktionsvollholz", "lambda": 0.13, "density": 500, "mu": [20, 50]}}
+        ]},
+        {"material": {"name": "Luftschicht der Installationsebene"}, "thickness": 0.04, "air": "slightlyVentilated", "airOpenings": 800},
+        {"material": {"name": "Holzbalken"}, "thickness": 0.18, "parts": [
+            {"fraction": 0.1, "material": {"name": "Holzbalken", "lambda": 0.13}},
+            {"fraction": 0.9, "material": {"name": "Luft"}, "air": "unventilated"}
+        ]},
+        {"material": {"name": "Gipskarton", "lambda": 0.25, "mu": 8}, "thickness": 0.0125}
+    ]);
+    let valid = [
+        ("roadmap", app(json!("energieberatung"), json!({"change": "setPlant", "slot": "heatingDistribution"}))),
+        // An app the reader does not know, and a payload of any shape the app gives it.
+        ("roadmap", app(json!("kalkulation"), json!({}))),
+        // A newer op is still kept.
+        ("roadmap", roadmap(json!({"op": "move", "target": ID, "by": [0, 50]}))),
+        (
+            "costs",
+            costs(json!({"measure": ID,
+                "investment": {"amount": 32000, "source": {"file": HASH, "note": "Angebot vom 28.10.2026"}},
+                "anywayCosts": {"amount": 9000, "source": {"note": "geschätzt"}},
+                "funding": [{"programme": "BEG EM", "rate": 0.2, "amount": {"amount": 4600},
+                    "source": {"note": "BEG EM, Richtlinie vom 17.07.2026"}}]})),
+        ),
+        ("consumption", period(json!({"calorificBasis": "gross", "calorificValue": 10.64}))),
+        ("consumption", period(json!({"calorificBasis": "net"}))),
+        ("consumption", period(json!({"unit": "kWh", "amount": 22400, "calorificBasis": "gross", "hotWater": 3100}))),
+        ("consumption", period(json!({"unit": "l", "amount": 2100, "hotWater": 2950, "hotWaterUnit": "kWh"}))),
+        ("consumption", period(json!({"unit": "rm", "amount": 8, "woodType": "hardwood"}))),
+        // Values a newer writer added.
+        ("consumption", period(json!({"calorificBasis": "de:brennwert-2027", "woodType": "birch"}))),
+        ("building", construction(rafters)),
+        ("building", construction(json!([{"material": {"name": "Luft"}, "thickness": 0.02, "air": "partlyClosed"}]))),
+    ];
+    for (target, doc) in valid {
+        let errors = s.errors(target, &doc);
+        assert!(errors.is_empty(), "{target} {doc}: {errors:?}");
+    }
+    let layer = |layer: Value| construction(json!([layer]));
+    let invalid = [
+        // An app change names its app and carries an object.
+        ("roadmap", roadmap(json!({"op": "app", "change": {}}))),
+        ("roadmap", app(json!(""), json!({}))),
+        ("roadmap", app(json!("energieberatung/energy.json"), json!({}))),
+        ("roadmap", app(json!(".bauzertifikate"), json!({}))),
+        ("roadmap", app(json!("energieberatung"), json!("addLayers"))),
+        ("roadmap", roadmap(json!({"op": "app", "app": "energieberatung"}))),
+        ("costs", costs(json!({"measure": ID, "investment": {"amount": 900, "source": "Angebot"}}))),
+        (
+            "costs",
+            costs(json!({"measure": ID, "funding": [{"programme": "BEG EM", "source": {"file": "Richtlinie.pdf"}}]})),
+        ),
+        ("consumption", period(json!({"calorificValue": 10.64}))),
+        ("consumption", period(json!({"calorificBasis": "gross", "calorificValue": 0}))),
+        ("consumption", period(json!({"calorificBasis": true}))),
+        ("consumption", period(json!({"woodType": 3}))),
+        ("consumption", period(json!({"hotWater": -1}))),
+        ("consumption", period(json!({"hotWaterUnit": "kWh"}))),
+        ("building", layer(json!({"material": {"name": "Holz", "mu": 0.5}, "thickness": 0.1}))),
+        ("building", layer(json!({"material": {"name": "Holz", "mu": [20]}, "thickness": 0.1}))),
+        ("building", layer(json!({"material": {"name": "Holz", "mu": [20, 50, 80]}, "thickness": 0.1}))),
+        ("building", layer(json!({"material": {"name": "Holz", "mu": "20/50"}, "thickness": 0.1}))),
+        (
+            "building",
+            layer(
+                json!({"material": {"name": "Sparren"}, "thickness": 0.18, "parts": [{"fraction": 1, "material": {"name": "Holz"}}]}),
+            ),
+        ),
+        (
+            "building",
+            layer(
+                json!({"material": {"name": "Sparren"}, "thickness": 0.18, "parts": [{"fraction": 0.9, "material": {"name": "Holz"}}, {"material": {"name": "Luft"}}]}),
+            ),
+        ),
+        (
+            "building",
+            layer(
+                json!({"material": {"name": "Sparren"}, "thickness": 0.18, "parts": [{"fraction": 0, "material": {"name": "Holz"}}, {"fraction": 1, "material": {}}]}),
+            ),
+        ),
+        ("building", layer(json!({"material": {"name": "Luft"}, "thickness": 0.04, "air": 1}))),
+        ("building", layer(json!({"material": {"name": "Luft"}, "thickness": 0.04, "airOpenings": 800}))),
+        (
+            "building",
+            layer(
+                json!({"material": {"name": "Luft"}, "thickness": 0.04, "air": "slightlyVentilated", "airOpenings": -1}),
+            ),
+        ),
+    ];
+    for (target, doc) in invalid {
+        assert!(!s.errors(target, &doc).is_empty(), "{target} {doc} passed");
+    }
+}
+
+/// A reader of edition 0.3.0 still reads what 0.4 writes: every document of the examples that the additions touch is
+/// valid against the schemas as 0.3.0 released them (`tests/edition-0.3.0/`, copied unchanged from the tag `v0.3.0`),
+/// the `app` change as the newer kind of change that 0.3.0 keeps without knowing it, and the new fields as fields it
+/// keeps.
+#[test]
+fn a_reader_of_0_3_reads_what_0_4_writes() {
+    let old = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/edition-0.3.0");
+    let names = ["common", "building", "roadmap", "costs", "consumption"];
+    let mut registry = Registry::new();
+    for name in names {
+        registry = registry.add(format!("{BASE}{name}.json"), read(&old.join(format!("{name}.json")))).unwrap();
+    }
+    let registry = registry.prepare().unwrap();
+    let validator = |name: &str| {
+        jsonschema::options()
+            .with_draft(Draft::Draft202012)
+            .with_registry(&registry)
+            .should_validate_formats(true)
+            .build(&json!({ "$ref": format!("{BASE}{name}.json") }))
+            .unwrap()
+    };
+    let examples = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples");
+    let documents = [
+        ("roadmap", "haus-am-hang/Daten/roadmaps/019a5e00-0000-7000-8000-00000000002c.json"),
+        ("costs", "haus-am-hang/Daten/costs/019a5e00-0000-7000-8000-00000000002d.json"),
+        ("consumption", "haus-am-hang/Daten/consumption/019a5e00-0000-7000-8000-00000000002e.json"),
+        ("building", "werkstatt-am-bach/Daten/buildings/019a5e01-0000-7000-8000-000000000002.json"),
+    ];
+    for (name, path) in documents {
+        let doc = read(&examples.join(path));
+        let errors: Vec<String> =
+            validator(name).iter_errors(&doc).map(|e| format!("{}: {e}", e.instance_path())).collect();
+        assert!(errors.is_empty(), "{path} under 0.3.0: {errors:?}");
+    }
+    // The examples do use each addition, so this proves something.
+    let text: String = documents.iter().map(|(_, path)| fs::read_to_string(examples.join(path)).unwrap()).collect();
+    for field in ["\"op\": \"app\"", "\"source\"", "\"calorificBasis\"", "\"calorificValue\"", "\"parts\"", "\"mu\""] {
+        assert!(text.contains(field), "no {field} in the examples");
+    }
+}
+
 /// The example projects in examples, each a project folder as a reader sees it without the store: its project file,
 /// the documents under `Daten/` by their path, and its issues. Every id a roadmap's measures and costs refer to is one
-/// the project has, or one an earlier change added, and no building holds what a planned step is still to add.
+/// the project has, or one an earlier change added, and no building holds what a planned step is still to add. No
+/// document says against itself what its schema cannot catch (a layer's parts adding up to more or less than it).
 /// Nothing in an example changed after its results and issues were made, so each names its documents as they lie,
 /// by the hash of their canonical JSON; and an issue that names a result states that result's figures.
 #[test]
@@ -378,6 +542,7 @@ fn the_examples() {
         }
         errors.extend(dangling(&documents).into_iter().map(|e| format!("{}: {e}", project.display())));
         errors.extend(later_state(&documents).into_iter().map(|e| format!("{}: {e}", project.display())));
+        errors.extend(inconsistent(&documents).into_iter().map(|e| format!("{}: {e}", project.display())));
     }
     assert!(errors.is_empty(), "{} invalid:\n{}", errors.len(), errors.join("\n"));
     assert!(checked > 0, "no examples");

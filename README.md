@@ -189,6 +189,17 @@ So every program that works on a project can add to it, whatever it reads of it.
      the building are written together.
   3. A reader never applies a done step, whose changes are the record of what was done, nor a declined one.
      A renovation from before the building was recorded is a done step without changes.
+
+  A measure can also change what only an app's own documents hold (a draft since 0.4): a value of the app's model
+  that the building document has no field for, as a heating's hydraulic balance in an energy program's model. Such a
+  change has the op `app` and names the app by its folder under `Daten/`; what it carries is that app's
+  (`roadmap.json`, `$defs/change`). It never changes the building document. A reader that knows the app and has its
+  documents applies it with the rest, by the same three rules. Any other reader keeps it as it came and treats the
+  state after its step, every later state and the target as unknown: it derives no figures for them and shows none
+  as if the change were not there; the roadmap's own data (steps, measures, what they affect, targets) it can still
+  show. A writer that does not know the app does not mark such a step done. The measure's `affects` and
+  `components` name what the change touches, for every reader. [`vectors/states.json`](vectors/states.json) has
+  cases of which states a reader can derive.
 - **Other major versions.** Each schema describes major version 1 of its document (`"schema": "1.x"`, store format
   `bzf/1.x`). A document or revision of another major version is only required to say which, and a reader opens the
   project read-only.
@@ -234,7 +245,8 @@ Install the Rust toolchain specified in `tools/rust-toolchain.toml`, then run fr
 ```
 
 This checks schema validity, reference resolution, extensibility, positive and negative document fixtures, and the
-fictional examples, including references between renovation measures and costs. Schema references are registered
+fictional examples, including references between renovation measures and costs, and that the documents the
+additions of 0.4 touch are still valid against the schemas of 0.3.0, so that a reader of that edition reads them. Schema references are registered
 locally; validation does not fetch schemas from the internet. Rust dependencies may need downloading on the first run.
 The check does not require any Bauzertifikate application or private repository.
 
@@ -258,7 +270,7 @@ bzf verify examples/haus-am-hang/Ergebnisse/Energieberatung/Energieausweis/ergeb
 
 | Command | What it does |
 |---|---|
-| `bzf check <folder \| file.bzf>` | Checks the project file, every document under `Daten/` against its schema, the references between documents, each result (current, stale or not to be told; its signatures) and each issue (its result and inputs). Ends with 1 if a rule is broken |
+| `bzf check <folder \| file.bzf>` | Checks the project file, every document under `Daten/` against its schema, the references between documents, what a document says against itself that its schema cannot catch (a layer's parts that do not add up to it, a hot-water share above its amount), each result (current, stale or not to be told; its signatures) and each issue (its result and inputs). Ends with 1 if a rule is broken |
 | `bzf pack [--history \| --share] <folder> <file.bzf>` | Writes the folder as one `.bzf` file: a snapshot without the store, `--history` with it, `--share` only what may leave the organisation |
 | `bzf unpack <file.bzf> <folder>` | Unpacks into a folder that is new or empty, refusing what the rules for reading refuse |
 | `bzf hash <document.json>` | The hash that results and issues name the document by ([HASHES.md](HASHES.md)) |

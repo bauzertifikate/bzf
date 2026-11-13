@@ -37,6 +37,17 @@
       "type": "bill",
       "from": "Eigentümerin",
       "mayPassOn": false
+    },
+    {
+      "id": "019a5e00-0000-7000-8000-000000000035",
+      "name": "Angebot Stuckateur WDVS.pdf",
+      "folder": "Dokumente",
+      "sha256": "397b65a5cb9f82914f62cd4377921cb96e078a98f22be055000fb4b70472e94e",
+      "size": 154112,
+      "received": "2026-10-29T16:05:00+01:00",
+      "type": "other",
+      "from": "Stuckateur (Beispiel)",
+      "mayPassOn": false
     }
   ]
 }

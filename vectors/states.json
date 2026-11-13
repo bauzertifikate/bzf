@@ -1,0 +1,685 @@
+{
+  "about": "Test vectors for the roadmap's states (README, \"Changes over time\"; roadmap.json, the change op `app`): which states a reader can derive from a roadmap. Each case gives a roadmap, the kinds of change the reader applies to the building document (`ops`) and the apps whose own changes it applies (`apps`, those whose documents it has), and the states in order, `current`, the state after each step that is not done or declined, and `target`, each `known` or `unknown` to that reader. A reader shows no figures for an unknown state as if the change it cannot apply were not there.",
+  "cases": [
+    {
+      "about": "A reader of edition 0.3, or one of 0.4 that does not know the app: the states from the step with the app's change on are unknown. The done step's app change is a record and leaves nothing unknown.",
+      "roadmap": {
+        "schema": "1.1",
+        "id": "019a5e02-0000-7000-8000-000000000001",
+        "building": "019a5e02-0000-7000-8000-000000000001",
+        "steps": [
+          {
+            "id": "019a5e02-0000-7000-8000-000000000020",
+            "label": "Abgleich (2019)",
+            "status": "done",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000120",
+                "changes": [
+                  {
+                    "op": "app",
+                    "app": "energieberatung",
+                    "change": {
+                      "change": "setPlant",
+                      "slot": "heatingDistribution",
+                      "field": "hydraulicBalance",
+                      "value": "balanced"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000021",
+            "label": "Paket 1",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000121",
+                "changes": [
+                  {
+                    "op": "set",
+                    "target": "019a5e02-0000-7000-8000-000000000010",
+                    "field": "construction",
+                    "value": "019a5e02-0000-7000-8000-000000000011"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000022",
+            "label": "Paket 2",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000122",
+                "changes": [
+                  {
+                    "op": "app",
+                    "app": "energieberatung",
+                    "change": {
+                      "change": "setPlant",
+                      "slot": "heatingDistribution",
+                      "field": "hydraulicBalance",
+                      "value": "balanced"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000023",
+            "label": "Paket 3",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000123",
+                "changes": [
+                  {
+                    "op": "add",
+                    "into": "019a5e02-0000-7000-8000-000000000001",
+                    "list": "systems",
+                    "item": {
+                      "id": "019a5e02-0000-7000-8000-000000000012",
+                      "kind": "heatPump"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "ops": [
+        "set",
+        "add",
+        "remove"
+      ],
+      "apps": [],
+      "states": [
+        [
+          "current",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000021",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000022",
+          "unknown"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000023",
+          "unknown"
+        ],
+        [
+          "target",
+          "unknown"
+        ]
+      ]
+    },
+    {
+      "about": "A reader that knows the app named and has its documents: every state.",
+      "roadmap": {
+        "schema": "1.1",
+        "id": "019a5e02-0000-7000-8000-000000000001",
+        "building": "019a5e02-0000-7000-8000-000000000001",
+        "steps": [
+          {
+            "id": "019a5e02-0000-7000-8000-000000000020",
+            "label": "Abgleich (2019)",
+            "status": "done",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000120",
+                "changes": [
+                  {
+                    "op": "app",
+                    "app": "energieberatung",
+                    "change": {
+                      "change": "setPlant",
+                      "slot": "heatingDistribution",
+                      "field": "hydraulicBalance",
+                      "value": "balanced"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000021",
+            "label": "Paket 1",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000121",
+                "changes": [
+                  {
+                    "op": "set",
+                    "target": "019a5e02-0000-7000-8000-000000000010",
+                    "field": "construction",
+                    "value": "019a5e02-0000-7000-8000-000000000011"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000022",
+            "label": "Paket 2",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000122",
+                "changes": [
+                  {
+                    "op": "app",
+                    "app": "energieberatung",
+                    "change": {
+                      "change": "setPlant",
+                      "slot": "heatingDistribution",
+                      "field": "hydraulicBalance",
+                      "value": "balanced"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000023",
+            "label": "Paket 3",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000123",
+                "changes": [
+                  {
+                    "op": "add",
+                    "into": "019a5e02-0000-7000-8000-000000000001",
+                    "list": "systems",
+                    "item": {
+                      "id": "019a5e02-0000-7000-8000-000000000012",
+                      "kind": "heatPump"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "ops": [
+        "set",
+        "add",
+        "remove"
+      ],
+      "apps": [
+        "energieberatung"
+      ],
+      "states": [
+        [
+          "current",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000021",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000022",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000023",
+          "known"
+        ],
+        [
+          "target",
+          "known"
+        ]
+      ]
+    },
+    {
+      "about": "A reader that knows another app only: as one that knows none.",
+      "roadmap": {
+        "schema": "1.1",
+        "id": "019a5e02-0000-7000-8000-000000000001",
+        "building": "019a5e02-0000-7000-8000-000000000001",
+        "steps": [
+          {
+            "id": "019a5e02-0000-7000-8000-000000000020",
+            "label": "Abgleich (2019)",
+            "status": "done",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000120",
+                "changes": [
+                  {
+                    "op": "app",
+                    "app": "energieberatung",
+                    "change": {
+                      "change": "setPlant",
+                      "slot": "heatingDistribution",
+                      "field": "hydraulicBalance",
+                      "value": "balanced"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000021",
+            "label": "Paket 1",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000121",
+                "changes": [
+                  {
+                    "op": "set",
+                    "target": "019a5e02-0000-7000-8000-000000000010",
+                    "field": "construction",
+                    "value": "019a5e02-0000-7000-8000-000000000011"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000022",
+            "label": "Paket 2",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000122",
+                "changes": [
+                  {
+                    "op": "app",
+                    "app": "energieberatung",
+                    "change": {
+                      "change": "setPlant",
+                      "slot": "heatingDistribution",
+                      "field": "hydraulicBalance",
+                      "value": "balanced"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000023",
+            "label": "Paket 3",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000123",
+                "changes": [
+                  {
+                    "op": "add",
+                    "into": "019a5e02-0000-7000-8000-000000000001",
+                    "list": "systems",
+                    "item": {
+                      "id": "019a5e02-0000-7000-8000-000000000012",
+                      "kind": "heatPump"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "ops": [
+        "set",
+        "add",
+        "remove"
+      ],
+      "apps": [
+        "kalkulation"
+      ],
+      "states": [
+        [
+          "current",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000021",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000022",
+          "unknown"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000023",
+          "unknown"
+        ],
+        [
+          "target",
+          "unknown"
+        ]
+      ]
+    },
+    {
+      "about": "A declined step's app change is never applied, so it leaves nothing unknown.",
+      "roadmap": {
+        "schema": "1.1",
+        "id": "019a5e02-0000-7000-8000-000000000001",
+        "building": "019a5e02-0000-7000-8000-000000000001",
+        "steps": [
+          {
+            "id": "019a5e02-0000-7000-8000-000000000021",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000121",
+                "changes": [
+                  {
+                    "op": "set",
+                    "target": "019a5e02-0000-7000-8000-000000000010",
+                    "field": "construction",
+                    "value": "019a5e02-0000-7000-8000-000000000011"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000022",
+            "status": "declined",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000122",
+                "changes": [
+                  {
+                    "op": "app",
+                    "app": "energieberatung",
+                    "change": {
+                      "change": "setPlant",
+                      "slot": "heatingDistribution",
+                      "field": "hydraulicBalance",
+                      "value": "balanced"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000023",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000123",
+                "changes": [
+                  {
+                    "op": "add",
+                    "into": "019a5e02-0000-7000-8000-000000000001",
+                    "list": "systems",
+                    "item": {
+                      "id": "019a5e02-0000-7000-8000-000000000012",
+                      "kind": "heatPump"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "ops": [
+        "set",
+        "add",
+        "remove"
+      ],
+      "apps": [],
+      "states": [
+        [
+          "current",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000021",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000023",
+          "known"
+        ],
+        [
+          "target",
+          "known"
+        ]
+      ]
+    },
+    {
+      "about": "A newer kind of change, which no reader of these editions knows, leaves the states from its step on unknown to every one of them.",
+      "roadmap": {
+        "schema": "1.1",
+        "id": "019a5e02-0000-7000-8000-000000000001",
+        "building": "019a5e02-0000-7000-8000-000000000001",
+        "steps": [
+          {
+            "id": "019a5e02-0000-7000-8000-000000000021",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000121",
+                "changes": [
+                  {
+                    "op": "set",
+                    "target": "019a5e02-0000-7000-8000-000000000010",
+                    "field": "construction",
+                    "value": "019a5e02-0000-7000-8000-000000000011"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000022",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000122",
+                "changes": [
+                  {
+                    "op": "move",
+                    "target": "019a5e02-0000-7000-8000-000000000010",
+                    "by": [
+                      0,
+                      50
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000023",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000123",
+                "changes": [
+                  {
+                    "op": "add",
+                    "into": "019a5e02-0000-7000-8000-000000000001",
+                    "list": "systems",
+                    "item": {
+                      "id": "019a5e02-0000-7000-8000-000000000012",
+                      "kind": "heatPump"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "ops": [
+        "set",
+        "add",
+        "remove"
+      ],
+      "apps": [
+        "energieberatung"
+      ],
+      "states": [
+        [
+          "current",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000021",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000022",
+          "unknown"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000023",
+          "unknown"
+        ],
+        [
+          "target",
+          "unknown"
+        ]
+      ]
+    },
+    {
+      "about": "A step of a status the reader does not know leaves the states from it on unknown.",
+      "roadmap": {
+        "schema": "1.1",
+        "id": "019a5e02-0000-7000-8000-000000000001",
+        "building": "019a5e02-0000-7000-8000-000000000001",
+        "steps": [
+          {
+            "id": "019a5e02-0000-7000-8000-000000000021",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000121",
+                "changes": [
+                  {
+                    "op": "set",
+                    "target": "019a5e02-0000-7000-8000-000000000010",
+                    "field": "construction",
+                    "value": "019a5e02-0000-7000-8000-000000000011"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000022",
+            "status": "onHold",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000122",
+                "changes": [
+                  {
+                    "op": "add",
+                    "into": "019a5e02-0000-7000-8000-000000000001",
+                    "list": "systems",
+                    "item": {
+                      "id": "019a5e02-0000-7000-8000-000000000012",
+                      "kind": "heatPump"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "019a5e02-0000-7000-8000-000000000023",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000123",
+                "changes": [
+                  {
+                    "op": "set",
+                    "target": "019a5e02-0000-7000-8000-000000000010",
+                    "field": "construction",
+                    "value": "019a5e02-0000-7000-8000-000000000011"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "ops": [
+        "set",
+        "add",
+        "remove"
+      ],
+      "apps": [
+        "energieberatung"
+      ],
+      "states": [
+        [
+          "current",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000021",
+          "known"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000022",
+          "unknown"
+        ],
+        [
+          "019a5e02-0000-7000-8000-000000000023",
+          "unknown"
+        ],
+        [
+          "target",
+          "unknown"
+        ]
+      ]
+    },
+    {
+      "about": "A roadmap of done steps only: the target is the building as it stands.",
+      "roadmap": {
+        "schema": "1.1",
+        "id": "019a5e02-0000-7000-8000-000000000001",
+        "building": "019a5e02-0000-7000-8000-000000000001",
+        "steps": [
+          {
+            "id": "019a5e02-0000-7000-8000-000000000020",
+            "status": "done",
+            "measures": [
+              {
+                "id": "019a5e02-0000-7000-8000-000000000120",
+                "changes": [
+                  {
+                    "op": "app",
+                    "app": "energieberatung",
+                    "change": {
+                      "change": "setPlant",
+                      "slot": "heatingDistribution",
+                      "field": "hydraulicBalance",
+                      "value": "balanced"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "ops": [
+        "set",
+        "add",
+        "remove"
+      ],
+      "apps": [],
+      "states": [
+        [
+          "current",
+          "known"
+        ],
+        [
+          "target",
+          "known"
+        ]
+      ]
+    }
+  ]
+}

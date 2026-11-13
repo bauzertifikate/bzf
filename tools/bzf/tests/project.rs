@@ -116,6 +116,41 @@ fn what_breaks_a_rule_is_an_error() {
     assert!(errors(&tree).iter().any(|e| e.starts_with(BALANCE) && e.contains("as result")));
 }
 
+/// What a document says against itself that its schema cannot catch is an error too: a layer's parts that do not add
+/// up to the layer, a μ pair the wrong way round, a hot-water share larger than its amount.
+#[test]
+fn a_document_that_contradicts_itself_is_an_error() {
+    let schemas = Schemas::new();
+    let path = "Daten/buildings/019a5e01-0000-7000-8000-000000000002.json";
+    // The workshop with its inhomogeneous layer (the roof's insulation between battens) changed.
+    let workshop = |change: &dyn Fn(&mut Value)| -> Tree {
+        let mut tree = read_folder(&examples().join("werkstatt-am-bach")).unwrap();
+        let mut building = json_of(&tree, path);
+        let constructions = building["constructions"].as_array_mut().unwrap();
+        let layers = constructions.iter_mut().flat_map(|c| c["layers"].as_array_mut().unwrap().iter_mut());
+        layers.filter(|layer| layer.get("parts").is_some()).for_each(change);
+        put(&mut tree, path, &building);
+        tree
+    };
+    assert!(check(&workshop(&|_| {}), &schemas).errors.is_empty());
+    let errors = check(&workshop(&|layer| layer["parts"][0]["fraction"] = json!(0.9)), &schemas).errors;
+    assert!(errors.iter().any(|e| e.starts_with("buildings/") && e.contains("add up to 0.98")), "{errors:?}");
+    let errors = check(&workshop(&|layer| layer["parts"][1]["material"]["mu"] = json!([50, 20])), &schemas).errors;
+    assert!(errors.iter().any(|e| e.contains("\"Kantholz\" has μ 50/20")), "{errors:?}");
+
+    let mut tree = house();
+    let consumption = tree.keys().find(|path| path.starts_with("Daten/consumption/")).unwrap().clone();
+    let mut doc = json_of(&tree, &consumption);
+    doc["periods"][2]["hotWater"] = json!(30000);
+    put(&mut tree, &consumption, &doc);
+    let errors = check(&tree, &schemas).errors;
+    assert!(errors.iter().any(|e| e.contains("hot-water share of 30000")), "{errors:?}");
+    // In another unit than the amount, the share is not compared.
+    doc["periods"][2]["hotWaterUnit"] = json!("MWh");
+    put(&mut tree, &consumption, &doc);
+    assert!(check(&tree, &schemas).errors.is_empty());
+}
+
 #[test]
 fn a_result_is_current_until_a_document_it_names_changes() {
     let schemas = Schemas::new();

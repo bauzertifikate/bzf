@@ -56,7 +56,7 @@ with its systems, kept with the issue by hash (`versand.json` `inputs`).
 | Optional: renovation passport available; SRI assessed and its value; logbook available | an issue of type `renovationRoadmap`; an issue of type `sri` with `figures[].smartReadiness`; the logbook is where the project is kept | issued, outside |
 | Not in the template, but in § 85 GEG and DIBt's registration | `address`, `year`, `use`, `category`, `identifiers` on the building; registration number in `versand.json` `registrations` | stored |
 | The calculation's outputs (Annex I 2, 3): energy per use; total, non-renewable and renewable primary energy; life-cycle GWP per stage (Annex III) | `figures` (`uses`, `primaryEnergy`, `primaryEnergyTotal`, `primaryEnergyRenewable`, `lifeCycleGwpStages`) | issued |
-| The calculation's inputs (Annex I 4, 5; Art. 20(8)): thermal capacity, insulation, thermal bridges, passive solar and shading, air-tightness, systems with their efficiencies | layers with `lambda`, `density`, `heatCapacity`; `thermalBridges`; `openings[].gValue`, `lightTransmittance`, `shading`; `airtightness`; `systems[]` with `efficiency`, `scop`, `seer`, `heatRecovery`, `airflow`, `specificFanPower`, `power`, `insulation`, `standingLoss`, `automationClass`; spaces' `designTemperature` and `internalGains` where they differ from the method's standard conditions | stored |
+| The calculation's inputs (Annex I 4, 5; Art. 20(8)): thermal capacity, insulation, thermal bridges, passive solar and shading, air-tightness, systems with their efficiencies | layers with `lambda`, `density`, `heatCapacity`, inhomogeneous layers by their `parts`, air layers with their ventilation (`air`); `thermalBridges`; `openings[].gValue`, `lightTransmittance`, `shading`; `airtightness`; `systems[]` with `efficiency`, `scop`, `seer`, `heatRecovery`, `airflow`, `specificFanPower`, `power`, `insulation`, `standingLoss`, `automationClass`; spaces' `designTemperature` and `internalGains` where they differ from the method's standard conditions | stored |
 | Reference values: minimum requirements, MEPS, nearly zero-energy and zero-emission (Art. 19(1)) | `figures[].references`, as they apply to the building | issued |
 | The certificate's recommendations (Art. 19(5) to (7)) | a roadmap of scheme `epc-recommendations`, each recommendation a step with its figures | stored, issued |
 
@@ -68,7 +68,7 @@ with its systems, kept with the issue by hash (`versand.json` `inputs`).
 | Graphic roadmap of the staged deep renovation | `roadmaps/<id>.json` `steps` | stored |
 | National requirements (minimum requirements, MEPS, fossil phase-out, with dates) | the issued document | outside |
 | Why the steps come in this order | `steps[].rationale` | stored |
-| Per step: measures with technology and material options | `steps[].measures` with `options`, `changes` | stored |
+| Per step: measures with technology and material options | `steps[].measures` with `options`, `changes` (a value only an energy program's own model holds, such as a hydraulic balance, as a change of the op `app`) | stored |
 | Per step: primary and final energy savings (kWh and %), GHG reduction, bill savings with the price assumptions, class after the step | `figures` per step (`state`: the step's id); prices in `assumptions` | derived (prices stored), issued |
 | District-heating potential | `heatNetwork` | stored |
 | Renewable generation and self-consumption after renovation | `figures` with `state: "target"` (`renewableShare`, `selfConsumption`) | derived, issued |
@@ -76,7 +76,7 @@ with its systems, kept with the issue by hash (`versand.json` `inputs`).
 | Funding sources with links | `measures[].funding` (`programme`, `url`) | stored |
 | Advisory services, one-stop shops | `versand.json` `oneStopShop`; other advice in the issued document | issued, outside |
 | May: timing of steps; time a step takes | `steps[].year`, `until`, `trigger`; `duration` | stored |
-| May: costs per step, payback with and without subsidy | `costs/<id>.json` (commercial); payback derived | stored, derived |
+| May: costs per step, payback with and without subsidy | `costs/<id>.json` (commercial), each figure with its `source`; payback derived | stored, derived |
 | May: technologies with their advantages and disadvantages | `measures[].description`, `options`, `advantages`, `disadvantages` | stored |
 | May: lifetime and maintenance costs | `measures[].lifetime`; `costs/<id>.json` `maintenanceYearly` (commercial); `systems[].endOfLife` | stored |
 | May: seismic safety, where relevant | the building's `seismic` (`zone`, `note`) | stored |
@@ -101,13 +101,13 @@ data file is named only by `"format": "bafa-isfp"`.
 | Timing: a year, a range, or a trigger | `year`, `until`, `trigger` | stored |
 | Target values per measure: U-value, thickness, WLS; efficiency, JAZ (as `scop`), solar fraction, collector area, storage, heat recovery, PV kWp, battery kWh | `measures[].targets`; the new constructions and systems in `changes` | stored |
 | Execution variants (up to 3 per component), short description, "Zu beachten" | `options`, `description`, `requirements` | stored |
-| Per package: investment, Sowieso-Kosten, BEG funding in € | `costs/<id>.json` per measure (`investment`, `anywayCosts`, `funding`); the package's sums derived | stored (commercial) |
+| Per package: investment, Sowieso-Kosten, BEG funding in € | `costs/<id>.json` per measure (`investment`, `anywayCosts`, `funding`), each with where it comes from (`source`: an offer, the funding guideline); the package's sums derived | stored (commercial) |
 | Primary energy, final energy, CO₂ and energy costs after each step, savings in % | `figures` per step | derived, issued |
-| Energy costs calibrated to 36 months of consumption | `consumption/<id>.json`; prices and their source in `assumptions` | stored, then derived |
+| Energy costs calibrated to 36 months of consumption | `consumption/<id>.json`: periods with their calorific basis and value, wood type and hot-water share as billed, and by the meters' `services` whether the amounts hold hot water; prices and their source in `assumptions` | stored, then derived |
 | Effizienzhaus level reached | `figures[].standard`; `target.standard` | derived, issued |
 | Heat networks and municipal heat planning (since 2.6) | `heatNetwork` | stored |
 | Energieausweis class and renewable figure (since 2.6) | the certificate's issue `figures` | issued |
-| Technical documentation: U-value tables, envelope and systems per state, elevations | constructions, openings, systems; the state after each step from `changes`; drawings derived from the geometry | derived from stored |
+| Technical documentation: U-value tables, envelope and systems per state, elevations | constructions, openings, systems; the state after each step from `changes` (after a change of the op `app`, only by the program whose change it is); drawings derived from the geometry | derived from stored |
 | User-influence table (temperatures, presence, room use) | the balancing software's own document (reserved app folder) | not in the model |
 | Datenblatt zur Qualitätssicherung (heated volume, thermal-bridge allowance, primary energy) | the method; the allowance is the balancing software's setting | derived |
 | BEG check that a measure is the iSFP's (Richtlinie 9.2.4), iSFP bonus within 15 years | the issued iSFP with its `time`; `measures[].targets` to compare against | stored, issued |

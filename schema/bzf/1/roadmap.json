@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://bauzertifikate.de/schema/bzf/1/roadmap.json",
   "title": "bzf renovation roadmap",
-  "description": "A renovation roadmap for one building, `roadmaps/<id>.json`: the steps of a staged renovation in their order, each step's measures and what each measure changes in the building, the target and the assumptions the figures rest on. It is the content of a renovation passport (EPBD Art. 12 and Annex VIII), which in Germany is the individueller Sanierungsfahrplan (iSFP). The building document is the building as it stands and holds no later state. The state after a planned step is the building document with the changes of every planned step up to it applied in order; a done step's changes are in the building document already, and a declined step's are never applied. A writer that marks a step done applies its changes to the building document in the same revision, corrected to what was built. Each state's figures (energy, GHG emissions, class, savings, bill savings) are derived by the method that issues the roadmap and are frozen in the issued document (versand.json, type `renovationRoadmap`), never stored here. Costs and funding amounts are commercial and lie apart (costs.json). This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
+  "description": "A renovation roadmap for one building, `roadmaps/<id>.json`: the steps of a staged renovation in their order, each step's measures and what each measure changes in the building, the target and the assumptions the figures rest on. It is the content of a renovation passport (EPBD Art. 12 and Annex VIII), which in Germany is the individueller Sanierungsfahrplan (iSFP). The building document is the building as it stands and holds no later state. The state after a planned step is the building document with the changes of every planned step up to it applied in order; a done step's changes are in the building document already, and a declined step's are never applied. A writer that marks a step done applies its changes to the building document in the same revision, corrected to what was built. A change of the op `app` changes an app's own documents instead, and a reader that does not know that app cannot derive the states from its step on. Each state's figures (energy, GHG emissions, class, savings, bill savings) are derived by the method that issues the roadmap and are frozen in the issued document (versand.json, type `renovationRoadmap`), never stored here. Costs and funding amounts are commercial and lie apart (costs.json). This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
   "x-bzf-status": "draft",
   "x-bzf-class": "building",
   "type": "object",
@@ -143,7 +143,7 @@
           }
         },
         "affects": { "description": "The items it concerns: walls, openings, roof plates, systems.", "type": "array", "items": { "$ref": "common.json#/$defs/id" } },
-        "changes": { "description": "What it changes in the building document, applied in order. In a planned step they are what is to be done. In a done step they are the record of what was done, as built, and an id in them may be gone from the building (an item the step removed).", "type": "array", "items": { "$ref": "#/$defs/change" } },
+        "changes": { "description": "What it changes in the building document, or in an app's own documents (op `app`), applied in order. In a planned step they are what is to be done. In a done step they are the record of what was done, as built, and an id in them may be gone from the building (an item the step removed). A measure whose changes include an `app` change says in `affects` and `components` what that change touches, so that a reader that does not know the app still sees which items and component groups the measure concerns.", "type": "array", "items": { "$ref": "#/$defs/change" } },
         "description": { "description": "What is done, technically, as the owner and the trade read it.", "type": "string" },
         "options": { "description": "Technology and material options for it (EPBD Annex VIII).", "type": "array", "items": { "type": "string" } },
         "targets": {
@@ -192,7 +192,7 @@
       "additionalProperties": true
     },
     "change": {
-      "description": "One change to the building document: a field of an item set (a wall's construction, a system's phase), an item added to a list (a new construction, a new heat pump), or an item removed. Items are found by id anywhere in the building; a field holds what that item's schema allows.",
+      "description": "One change: to the building document, a field of an item set (a wall's construction, a system's phase), an item added to a list (a new construction, a new heat pump), or an item removed; items are found by id anywhere in the building, and a field holds what that item's schema allows. Or, since 0.4, a change to an app's own documents (op `app`). Or a newer kind of change.",
       "oneOf": [
         {
           "type": "object",
@@ -226,9 +226,27 @@
           "additionalProperties": true
         },
         {
+          "description": "A change only the named app's own document model knows (since 0.4): what it changes lies in that app's own documents, `Daten/<app>/…`, never in the building document, which only `set`, `add` and `remove` change. A reader that knows the app's document model and has its documents applies it to them, in its place among the changes, to derive the state after the step. Any other reader (one of edition 0.3 or older, which takes it for a newer kind of change, too): MUST keep it as it came, in its place, and write it back unchanged; MUST treat the state after the step that holds it, and every later state and the target, as unknown, deriving no figures for them and showing none as if the change were not there; MAY show the roadmap's own data (steps, measures, `affects`, `components`, `targets`, costs) and the states before that step. A done step's `app` changes are in the app's documents already and a declined step's are never applied, so neither leaves a state unknown. A writer that marks a step done applies its `app` changes to the app's documents in the same revision as the rest; a writer that does not know the app does not mark such a step done.",
+          "type": "object",
+          "properties": {
+            "op": { "const": "app" },
+            "app": {
+              "description": "The app, by the name of its own folder under `Daten/` (`energieberatung` for `Daten/energieberatung/…`, whose class the project root's `classes` gives under `energieberatung/`): one path segment, not starting with a dot, and none of the folders this specification defines.",
+              "type": "string",
+              "pattern": "^[^./\\\\][^/\\\\]*$"
+            },
+            "change": {
+              "description": "The change as the app's own document model describes it: opaque to every other reader. It follows the format's writing rules (README, \"How the documents are written\"): keys in English, free text in the project's language, items of the project named by their ids.",
+              "type": "object"
+            }
+          },
+          "required": ["op", "app", "change"],
+          "additionalProperties": true
+        },
+        {
           "description": "A newer kind of change, kept as it came; a reader that doesn't know it shows the step's state after it as unknown.",
           "type": "object",
-          "properties": { "op": { "not": { "enum": ["set", "add", "remove"] } } },
+          "properties": { "op": { "not": { "enum": ["set", "add", "remove", "app"] } } },
           "required": ["op"],
           "additionalProperties": true
         }

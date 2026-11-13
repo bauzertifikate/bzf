@@ -15,6 +15,53 @@
   to the rules on small buildings, including cases the examples do not cover yet.
 - No schema, rule or example changes.
 
+### Facts an energy model needs (drafts)
+
+Four additions, all optional: a document valid under 0.3.0 stays valid, and a reader of 0.3.0 reads a document
+that uses them (it keeps what it does not know, and takes an `app` change for the newer kind of change it already
+keeps). Each is a draft until specification 1.0.
+
+- `roadmap.json`: the change op `app`, `{"op": "app", "app": <folder>, "change": {…}}`, a change that only the named
+  app's own document model knows. What it changes lies in that app's documents under `Daten/<app>/`, never in the
+  building document. A reader that knows the app and has its documents applies it; any other reader keeps it as it
+  came and treats the state after its step, every later state and the target as unknown, deriving and showing no
+  figures for them. A writer that does not know the app does not mark such a step done. README, "Changes over
+  time", has the rule; [`vectors/states.json`](vectors/states.json) has cases of which states a reader can derive.
+- `common.json` `money`: `source`, where an amount comes from (an offer among the received files, a cost database).
+  `costs.json`: a funding entry's `source`, where its rate and amount come from. The measure's `source` applies to
+  the figures that have none of their own.
+- `consumption.json`, a period: `calorificBasis` (`gross` or `net`: the basis of the period's kWh and of its
+  calorific value), `calorificValue` (kWh per unit of the amount, as the bill states it), `woodType` (`hardwood`,
+  `softwood`, `mixed`, for log wood billed by volume), `hotWater` (the share of the amount that heated water, as a
+  bill states it) and `hotWaterUnit` (its unit where it is not the amount's).
+- `common.json` `layer`: `parts`, an inhomogeneous layer (rafters and insulation) as its materials side by side by
+  area fraction; `air`, an air layer's ventilation (`unventilated`, `slightlyVentilated`, `wellVentilated`, EN ISO
+  6946); `airOpenings`, its measured openings. A part can be an air cavity (`air` on the part). `material`: `mu`,
+  the water vapour diffusion resistance factor, one value or the pair a catalogue states.
+- How hot water shows in the consumption needed no new field: a meter's `services` say whether its amounts hold
+  the energy that heated water. Their description now says so, and what it means when every meter lists its
+  services and none lists `hotWater` (water heated apart from this consumption, decentrally).
+- `bzf check` reports what a document says against itself that its schema cannot catch: parts of a layer that do not
+  add up to 1, a μ pair with the higher value first, a hot-water share larger than its amount in the same unit. The
+  library has the rule for which states of a roadmap a reader can derive (`bzf::project::states`).
+- The examples use the additions: in Haus am Hang the hydraulic balance is an `app` change of the Energieberatung's
+  model, the wall's insulation build-up has μ, the plasterer's offer is a received file that the wall's investment
+  names, the anyway costs and the funding say where they come from, and the gas bills their calorific basis, one of
+  them in m³ with its calorific value. The workshop's roof insulation lies between battens, as an inhomogeneous
+  layer, and its wall has μ. The Sanierungsfahrplan's result and the two issues made from the roadmap name its new
+  hash, and `examples/Haus am Hang.bzf` is packed again.
+- `./check.sh` validates the examples' roadmap, costs, consumption and workshop against the schemas of 0.3.0, kept
+  unchanged in `tools/check/tests/edition-0.3.0/`, and checks every addition with valid and invalid fixtures.
+
+Migration:
+
+- A change of the op `app` without `app` (one path segment) or without an object `change` was valid under 0.3.0 as
+  a newer kind of change and is not from 0.4. No writer is known to have written one.
+- A writer that uses one of the additions writes the next minor version of the document's schema: the examples'
+  roadmap, costs and consumption are `1.1`, the workshop's building `1.2`.
+- A layer with `parts` or `air` SHOULD give its own material no `lambda`, so that a reader that does not know the
+  addition finds the layer's conductivity not given rather than a wrong one.
+
 ## 0.3.0 — 2026-11-12
 
 The first edition with a program to use it by: `bzf` checks a project, packs and unpacks the `.bzf` file, names a

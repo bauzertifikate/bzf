@@ -1,5 +1,5 @@
 {
-  "schema": "1.1",
+  "schema": "1.2",
   "id": "019a5e01-0000-7000-8000-000000000002",
   "label": "Werkstatt am Bach",
   "address": {
@@ -350,7 +350,11 @@
           "material": {
             "name": "Außenputz",
             "lambda": 1.0,
-            "density": 1800
+            "density": 1800,
+            "mu": [
+              15,
+              35
+            ]
           },
           "thickness": 0.02
         },
@@ -358,7 +362,11 @@
           "material": {
             "name": "Porenbeton",
             "lambda": 0.16,
-            "density": 500
+            "density": 500,
+            "mu": [
+              5,
+              10
+            ]
           },
           "thickness": 0.365
         },
@@ -366,7 +374,8 @@
           "material": {
             "name": "Innenputz",
             "lambda": 0.7,
-            "density": 1400
+            "density": 1400,
+            "mu": 10
           },
           "thickness": 0.015
         }
@@ -436,11 +445,32 @@
         },
         {
           "material": {
-            "name": "Wärmedämmung",
-            "lambda": 0.04,
-            "density": 30
+            "name": "Wärmedämmung"
           },
-          "thickness": 0.14
+          "thickness": 0.14,
+          "parts": [
+            {
+              "fraction": 0.92,
+              "material": {
+                "name": "Mineralwolle",
+                "lambda": 0.04,
+                "density": 30,
+                "mu": 1
+              }
+            },
+            {
+              "fraction": 0.08,
+              "material": {
+                "name": "Kantholz",
+                "lambda": 0.13,
+                "density": 500,
+                "mu": [
+                  20,
+                  50
+                ]
+              }
+            }
+          ]
         },
         {
           "material": {

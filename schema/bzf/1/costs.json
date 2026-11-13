@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://bauzertifikate.de/schema/bzf/1/costs.json",
   "title": "bzf costs",
-  "description": "The costs of a roadmap's measures, `costs/<id>.json`: investment, the share of it that would be due anyway (Sowieso-Kosten, `anywayCosts`), and the funding each may get, as estimated at a date. Commercial: it never leaves the organisation that holds it, so a roadmap shared with a trade goes without it. The issued roadmap shows these figures as they were. This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
+  "description": "The costs of a roadmap's measures, `costs/<id>.json`: investment, the share of it that would be due anyway (Sowieso-Kosten, `anywayCosts`), and the funding each may get, as estimated at a date, each figure with where it comes from. Commercial: it never leaves the organisation that holds it, so a roadmap shared with a trade goes without it. The issued roadmap shows these figures as they were. This schema describes documents of schema version 1.x; a document of another major version is only required to say which.",
   "x-bzf-status": "draft",
   "x-bzf-class": "commercial",
   "type": "object",
@@ -42,13 +42,17 @@
               "programme": { "description": "\"BEG EM\".", "type": "string" },
               "rate": { "description": "The funding rate, as a fraction, bonuses included.", "type": "number", "minimum": 0, "maximum": 1 },
               "amount": { "$ref": "common.json#/$defs/money" },
-              "note": { "description": "\"mit iSFP-Bonus\".", "type": "string" }
+              "note": { "description": "\"mit iSFP-Bonus\".", "type": "string" },
+              "source": {
+                "description": "Where the rate and the amount come from: the programme's guideline with its date and number, a funding approval among the received files. An `amount` with a `source` of its own has that one. Since 0.4.",
+                "$ref": "common.json#/$defs/source"
+              }
             },
             "required": ["programme"],
             "additionalProperties": true
           }
         },
-        "source": { "description": "Where the figure came from: an offer among the received files, a cost database.", "$ref": "common.json#/$defs/source" }
+        "source": { "description": "Where its figures came from: an offer among the received files, a cost database. A figure with a `source` of its own (common.json `money`, since 0.4) has that one; this one applies to the figures without.", "$ref": "common.json#/$defs/source" }
       },
       "required": ["measure"],
       "additionalProperties": true

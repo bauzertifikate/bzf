@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bauzertifikate.de/schema/bzf/1/common.json",
+  "title": "bzf common definitions",
+  "description": "What the documents of a bzf project share: ids, hashes, times, dates, versions, points, open values, sources, constructions, products, identifiers, addresses, carriers, services, money and document classes. Lengths in plan are integer millimetres in the project's frame, heights are millimetres relative to its ±0,00, layer thicknesses are metres. Every object keeps the fields a reader doesn't know (additionalProperties: true), and every closed set of values is open: one of the known values, or any other string or object a newer writer wrote, which a reader keeps and writes back unchanged.",
+  "x-bzf-status": "stable",
+  "$defs": {
+    "id": {
+      "description": "An item's identity for life: a UUID (version 7 when we make it) in its standard text form, given by whoever creates the item, never reused and never derived from position, name or order. References go by id only. Ids an item has in a source (a LoD2 gml:id, an IFC GlobalId, a DWG handle) go into its source instead.",
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "hash": {
+      "description": "The SHA-256 of a file's or an object's bytes, 64 lower-case hex digits: its identity in the store.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "time": {
+      "description": "A time in RFC 3339, local time with its offset: \"2026-11-06T10:12:00+01:00\".",
+      "type": "string",
+      "format": "date-time"
+    },
+    "schemaVersion": {
+      "description": "A document's schema version, major.minor. A minor version only adds; a reader opens a document of a newer major version read-only, never refuses it and never rewrites it.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "label": {
+      "description": "What people read beside an id, which may be renumbered: \"EG\", \"Wohnen\", \"Nr. 12\". Left out when empty.",
+      "type": "string"
+    },
+    "mm": {
+      "description": "A length or a level, integer millimetres.",
+      "type": "integer"
+    },
+    "point": {
+      "description": "A point in plan, mm: x and y in the project's frame (or, inside a plate, in the plate's plane).",
+      "type": "array",
+      "prefixItems": [{ "type": "integer" }, { "type": "integer" }],
+      "items": false,
+      "minItems": 2
+    },
+    "point3": {
+      "description": "A point in space, mm: x, y and height above ±0,00.",
+      "type": "array",
+      "prefixItems": [{ "type": "integer" }, { "type": "integer" }, { "type": "integer" }],
+      "items": false,
+      "minItems": 3
+    },
+    "ring": {
+      "description": "A closed outline, mm, without repeating its first point. Outlines run counter-clockwise seen from above, holes clockwise.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/point" },
+      "minItems": 3
+    },
+    "newerValue": {
+      "description": "A value of a closed set that this version of the schema doesn't list: written by a newer writer, kept as it came and written back unchanged. Readers treat it as unknown, never as an error. A value national to one country is written `<country>:<value>`, the country as ISO 3166-1 alpha-2 in lower case (`de:isfp`, `de:AN`); a value the EPBD or an EU or international standard defines stays bare (`nzeb`, `scop`). The listed values follow the same rule.",
+      "type": ["string", "object"]
+    },
+    "phase": {
+      "description": "Whether an item stands and stays (existing), stands and goes (demolished), or is to be built (new). Left out for new.",
+      "anyOf": [{ "enum": ["existing", "demolished", "new"] }, { "$ref": "#/$defs/newerValue" }],
+      "default": "new"
+    },
+    "sourceKind": {
+      "description": "The kind of source: drawn in an app, an architect's plans (DWG, DXF), a LoD2 scene, an IFC model, a carpenter's cadwork model.",
+      "anyOf": [{ "enum": ["drawn", "plan", "lod2", "ifc", "cadwork"] }, { "$ref": "#/$defs/newerValue" }],
+      "default": "drawn"
+    },
+    "source": {
+      "description": "Where an item came from: the kind of source, its plan state, file, layer and entity, the ids it has there, the texts that came with it, a note.",
+      "type": "object",
+      "properties": {
+        "kind": { "$ref": "#/$defs/sourceKind" },
+        "planState": { "description": "The plan state it came with.", "$ref": "#/$defs/id" },
+        "file": { "description": "The received file's hash.", "$ref": "#/$defs/hash" },
+        "layer": { "description": "The CAD layer.", "type": "string" },
+        "handle": { "description": "The entity's handle in the file.", "type": "string" },
+        "ids": {
+          "description": "Its ids in the source: a gml:id, an IFC GlobalId.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "texts": {
+          "description": "The plan's texts that came with it: a room's \"Kochen\", \"10,5m²\".",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "note": { "description": "A note.", "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "material": {
+      "description": "A material by value, with the catalogue and row it came from, so a catalogue update never changes an old project. The spec publishes no catalogue: a project holds the values its user entered.",
+      "type": "object",
+      "properties": {
+        "name": { "description": "Its name.", "type": "string" },
+        "lambda": { "description": "Thermal conductivity, W/(m·K).", "type": "number", "exclusiveMinimum": 0 },
+        "density": { "description": "Density, kg/m³.", "type": "number", "minimum": 0 },
+        "heatCapacity": { "description": "Specific heat capacity, J/(kg·K): with the density, the thermal capacity the method takes from the layers (EPBD Annex I 4(a)(i)).", "type": "number", "exclusiveMinimum": 0 },
+        "catalogue": { "description": "The catalogue it came from, by name and edition: \"DIN 4108-4:2020-11\".", "type": "string" },
+        "row": { "description": "The catalogue's row.", "type": "string" },
+        "product": { "$ref": "#/$defs/product" }
+      },
+      "additionalProperties": true
+    },
+    "layer": {
+      "description": "A layer of a construction: a material and its thickness.",
+      "type": "object",
+      "properties": {
+        "material": { "$ref": "#/$defs/material" },
+        "thickness": { "description": "Metres (a 0,2 mm vapour barrier has one).", "type": "number", "minimum": 0 }
+      },
+      "required": ["material", "thickness"],
+      "additionalProperties": true
+    },
+    "construction": {
+      "description": "A build-up that walls, slabs and roofs refer to by id: its layers, outside to inside.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "description": "Its name.", "type": "string" },
+        "layers": { "description": "Outside to inside.", "type": "array", "items": { "$ref": "#/$defs/layer" } },
+        "source": { "$ref": "#/$defs/source" }
+      },
+      "required": ["id"],
+      "additionalProperties": true
+    },
+    "date": {
+      "description": "A calendar date, ISO 8601: \"2026-11-06\".",
+      "type": "string",
+      "format": "date"
+    },
+    "year": {
+      "description": "A year: when an item was built, installed or last renewed (Baujahr), or when a step is planned.",
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 2999
+    },
+    "identifier": {
+      "description": "An id a building, a register entry or a document has in someone else's system, beside our own id: the scheme that issued it and its value. Schemes national to a country carry its code (see `newerValue`). Known schemes: `de:alkis` (the German cadastre's building id, which LoD2's gml:id carries), `de:land-register` (Grundbuch), `de:dibt` (the DIBt registration number of an energy performance certificate), `de:bafa` (BAFA's Vorgangsnummer of an iSFP); a national building register's id, once one exists, as `<country>:building-id`. Documents written before 2026-11-08 may name `alkis` and `land-register` bare, which readers take as `de:alkis` and `de:land-register`. Any other scheme is kept.",
+      "type": "object",
+      "properties": {
+        "scheme": {
+          "anyOf": [{ "enum": ["de:alkis", "de:land-register", "de:dibt", "de:bafa"] }, { "type": "string", "minLength": 1 }]
+        },
+        "value": { "type": "string", "minLength": 1 },
+        "note": { "type": "string" }
+      },
+      "required": ["scheme", "value"],
+      "additionalProperties": true
+    },
+    "address": {
+      "description": "A postal address. A building's address is personal data where the building is a home (README, \"Privacy\").",
+      "type": "object",
+      "properties": {
+        "street": { "type": "string" },
+        "number": { "description": "The house number with its suffix: \"12a\".", "type": "string" },
+        "postcode": { "type": "string" },
+        "city": { "type": "string" },
+        "country": { "description": "ISO 3166-1 alpha-2: \"DE\".", "type": "string", "pattern": "^[A-Z]{2}$" },
+        "label": { "description": "The address as one line, where it isn't split.", "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "product": {
+      "description": "The product an item is: its maker and name, and where its data lie. An environmental product declaration (EPD, EN 15804) gives what a life-cycle GWP takes (EPBD Annex III); a digital product passport (Regulation (EU) 2024/1781) once products have one.",
+      "type": "object",
+      "properties": {
+        "maker": { "type": "string" },
+        "name": { "description": "The product's name and model.", "type": "string" },
+        "gtin": { "description": "Its GTIN, where it has one.", "type": "string" },
+        "epd": { "description": "Where its EPD is: a URL or a received file's hash.", "type": "string" },
+        "dpp": { "description": "Its digital product passport: a URL.", "type": "string" },
+        "datasheet": { "description": "Its data sheet, a received file.", "$ref": "#/$defs/hash" }
+      },
+      "additionalProperties": true
+    },
+    "carrier": {
+      "description": "An energy carrier a system takes in or a meter measures.",
+      "anyOf": [
+        {
+          "enum": [
+            "naturalGas",
+            "biomethane",
+            "lpg",
+            "heatingOil",
+            "bioOil",
+            "hydrogen",
+            "districtHeating",
+            "districtCooling",
+            "electricity",
+            "woodPellets",
+            "logWood",
+            "woodChips",
+            "hardCoal",
+            "lignite"
+          ]
+        },
+        { "$ref": "#/$defs/newerValue" }
+      ]
+    },
+    "service": {
+      "description": "An energy service, as the EPBD's Annex V lists energy use by them (and DIN/TS 18599 balances them): space heating, hot water, cooling, ventilation, built-in lighting.",
+      "anyOf": [{ "enum": ["heating", "hotWater", "cooling", "ventilation", "lighting"] }, { "$ref": "#/$defs/newerValue" }]
+    },
+    "money": {
+      "description": "An amount of money, with its currency (ISO 4217) and whether it includes VAT.",
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "default": "EUR" },
+        "gross": { "description": "Whether it includes VAT.", "type": "boolean", "default": true }
+      },
+      "required": ["amount"],
+      "additionalProperties": true
+    },
+    "figures": {
+      "description": "Figures a method worked out for a building, one entry per state: the building as it is, after each step of a roadmap, the target. They are the method's, under its standard conditions. An issue states them as issued (versand.json) and a result as calculated (result.json); in neither are they part of the model or inputs to another calculation.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "state": { "description": "`current`, `target`, or a roadmap step's id.", "type": "string", "minLength": 1 },
+          "class": { "description": "The energy performance class as issued: \"D\", on `classScale`.", "type": "string" },
+          "classScale": {
+            "description": "The scale `class` and `emissionClass` are on: `eu` for the EPBD's harmonised A to G (Art. 19(2)), or a national one, `de:geg` (A+ to H, GEG/GModG Anlage 10).",
+            "anyOf": [{ "enum": ["eu", "de:geg"] }, { "$ref": "common.json#/$defs/newerValue" }]
+          },
+          "primaryEnergy": { "description": "Primary energy, kWh/(m²·a): the non-renewable part where the method separates it, else the total. A writer that has both fills `primaryEnergyTotal` too.", "type": "number" },
+          "finalEnergy": { "description": "Final energy, kWh/(m²·a).", "type": "number" },
+          "energyNeed": { "description": "Energy needs, kWh/(m²·a).", "type": "number" },
+          "emissions": { "description": "Operational greenhouse gas emissions, kg CO₂-eq/(m²·a).", "type": "number" },
+          "lifeCycleGwp": { "description": "Life-cycle global warming potential, kg CO₂-eq/m² (EPBD Annex III), where calculated.", "type": "number" },
+          "renewableShare": { "description": "Renewable energy produced on site as a fraction of the building's final energy use (EPBD Annex V 1(d)); above 1 where it produces more than it uses.", "type": "number", "minimum": 0 },
+          "energyCosts": { "description": "Energy costs per year at the stated prices.", "$ref": "common.json#/$defs/money" },
+          "standard": { "description": "A standard reached: `nzeb`, `zeb` (EPBD), or a national one, `de:effizienzhaus-70`.", "type": "string" },
+          "area": { "description": "The reference area the per-m² figures are on, m², and which it is.", "type": "number", "minimum": 0 },
+          "areaKind": {
+            "description": "Which area `area` is: `referenceFloorArea` (EPBD Art. 2(52)), `usefulFloorArea` (Art. 2(51)), `netFloorArea`, `grossFloorArea`, `livingArea`.",
+            "anyOf": [{ "enum": ["referenceFloorArea", "usefulFloorArea", "netFloorArea", "grossFloorArea", "livingArea"] }, { "$ref": "common.json#/$defs/newerValue" }]
+          },
+          "areaKindNational": { "description": "Its national definition, `<country>:<code>`: `de:AN` (GEG Gebäudenutzfläche), `de:NGF` (Nettogrundfläche, DIN 277), `de:WoFlV` (Wohnfläche).", "type": "string" },
+          "primaryEnergyTotal": { "description": "Total primary energy, renewable and non-renewable, kWh/(m²·a) (EPBD Annex I 3).", "type": "number" },
+          "primaryEnergyRenewable": { "description": "Renewable primary energy, kWh/(m²·a) (EPBD Annex I 3).", "type": "number" },
+          "renewableProduction": { "description": "Renewable energy produced on site, kWh a year (EPBD Annex V 1: renewable energy production in kWh or MWh). Its carrier and source follow from the systems that produce it.", "type": "number", "minimum": 0 },
+          "selfConsumption": { "description": "The share of the renewable energy produced on site that the building uses itself, as a fraction (EPBD Annex VIII 1(g)).", "type": "number", "minimum": 0, "maximum": 1 },
+          "emissionClass": { "description": "A greenhouse gas emission class, where the national scheme has one (EPBD Annex V 2(b)).", "type": "string" },
+          "carbonRemovals": { "description": "Carbon removals by temporary storage in or on the building, kg CO₂-eq/m² (EPBD Annex V 2(c)).", "type": "number" },
+          "pm25": { "description": "Operational fine particulate matter (PM2.5) emissions, g/(m²·a) (EPBD Annex V 2(t)).", "type": "number", "minimum": 0 },
+          "smartReadiness": { "description": "The smart readiness indicator as a fraction, its percentage divided by 100 (EPBD Art. 15), on an issue of type `sri`.", "type": "number", "minimum": 0, "maximum": 1 },
+          "references": {
+            "description": "The reference values the document states beside the figures, kWh/(m²·a) of primary energy (EPBD Art. 19(1), Annex VIII 2(b)(ii)): the minimum energy performance requirement, the minimum energy performance standard (MEPS), the nearly zero-energy and the zero-emission requirement, as they apply to this building.",
+            "type": "object",
+            "properties": {
+              "minimumRequirement": { "type": "number" },
+              "meps": { "type": "number" },
+              "nzeb": { "type": "number" },
+              "zeb": { "type": "number" }
+            },
+            "additionalProperties": true
+          },
+          "lifeCycleGwpStages": {
+            "description": "Life-cycle global warming potential per life-cycle stage of EN 15978, kg CO₂-eq/m² of useful floor area over 50 years (EPBD Annex III): the modules as keys (\"A1-A3\", \"A4-A5\", \"B1-B7\", \"C1-C4\", \"D\").",
+            "type": "object",
+            "additionalProperties": { "type": "number" }
+          },
+          "uses": {
+            "description": "The figures per energy use (EPBD Annex V 2(a), Annex I 2): `heating`, `cooling`, `hotWater`, `ventilation`, `lighting`, each with its energy need, final and primary energy, kWh/(m²·a), and peak load, kW.",
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "energyNeed": { "type": "number" },
+                "finalEnergy": { "type": "number" },
+                "primaryEnergy": { "type": "number" },
+                "peakLoad": { "description": "kW.", "type": "number", "minimum": 0 }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "required": ["state"],
+        "additionalProperties": true
+      }
+    },
+    "documentClass": {
+      "description": "Where a document may go (README, \"Privacy\"): `building` documents (the physical model, sources, plans, results) are shared with the owner's consent; `party` documents (people, contacts, consents) and `commercial` ones (prices, costs, funding amounts, fees) never leave the organisation that holds them.",
+      "anyOf": [{ "enum": ["building", "party", "commercial"] }, { "$ref": "#/$defs/newerValue" }]
+    },
+    "conflict": {
+      "description": "A value two writers changed differently, as the store's merge keeps it in place of the value: the value before both changes (absent where there was none) and the values the writers gave it, at least two, in canonical order. Any value of a document in the store may be one; the document's schema applies once each conflict is settled. Keys starting with \"$\" are the store's in every document.",
+      "type": "object",
+      "properties": {
+        "$conflict": {
+          "type": "object",
+          "properties": {
+            "base": true,
+            "values": { "type": "array", "minItems": 2 }
+          },
+          "required": ["values"],
+          "additionalProperties": true
+        }
+      },
+      "required": ["$conflict"],
+      "additionalProperties": true
+    }
+  }
+}

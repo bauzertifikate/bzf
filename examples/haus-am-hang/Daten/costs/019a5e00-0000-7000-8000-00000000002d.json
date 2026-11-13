@@ -1,5 +1,5 @@
 {
-  "schema": "1.0",
+  "schema": "1.1",
   "id": "019a5e00-0000-7000-8000-00000000002d",
   "roadmap": "019a5e00-0000-7000-8000-00000000002c",
   "date": "2026-11-01",
@@ -26,16 +26,26 @@
     {
       "measure": "019a5e00-0000-7000-8000-000000000026",
       "investment": {
-        "amount": 900
+        "amount": 900,
+        "source": {
+          "note": "Richtwert des Heizungsbauers, mündlich"
+        }
       }
     },
     {
       "measure": "019a5e00-0000-7000-8000-000000000027",
       "investment": {
-        "amount": 32000
+        "amount": 32000,
+        "source": {
+          "file": "397b65a5cb9f82914f62cd4377921cb96e078a98f22be055000fb4b70472e94e",
+          "note": "Angebot Stuckateur vom 28.10.2026"
+        }
       },
       "anywayCosts": {
-        "amount": 9000
+        "amount": 9000,
+        "source": {
+          "note": "Neuanstrich und Ausbesserung des Putzes, ohnehin fällig, geschätzt"
+        }
       },
       "funding": [
         {
@@ -44,7 +54,10 @@
           "amount": {
             "amount": 4600
           },
-          "note": "mit iSFP-Bonus, auf die förderfähigen Kosten"
+          "note": "mit iSFP-Bonus, auf die förderfähigen Kosten",
+          "source": {
+            "note": "BEG EM, Richtlinie vom 17.07.2026; Betrag auf die förderfähigen Kosten"
+          }
         }
       ]
     },
